@@ -78,6 +78,12 @@ class AgentTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             CommonGroundAgent(RecordingClient()).run(["A"], ["B"], round_no=3)
 
+    def test_rejected_id_list_is_bounded(self):
+        with self.assertRaises(ValueError):
+            CommonGroundAgent(RecordingClient()).run(
+                ["A"], ["B"], rejected_ids=[f"movie:{i}" for i in range(11)]
+            )
+
     def test_fixture_evidence_is_candidate_specific(self):
         result = CommonGroundAgent(FixtureQlooClient()).run(
             ["Blade Runner", "Aphex Twin"], ["Amelie", "Daft Punk"]

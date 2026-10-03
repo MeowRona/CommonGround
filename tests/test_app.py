@@ -3,8 +3,9 @@ from __future__ import annotations
 import os
 import unittest
 from http import HTTPStatus
+from unittest.mock import patch
 
-from app import allow_request, build_bridge, health_state, search_interests
+from app import FixtureQlooClient, allow_request, build_bridge, health_state, search_interests
 
 
 class AppTests(unittest.TestCase):
@@ -57,6 +58,27 @@ class AppTests(unittest.TestCase):
     def test_short_search_is_rejected(self):
         with self.assertRaises(ValueError):
             search_interests("x")
+
+    def test_overlong_search_is_rejected(self):
+        with self.assertRaises(ValueError):
+            search_interests("x" * 121)
+
+    def test_search_results_are_cached(self):
+        import app
+
+        app._search_cache.clear()
+        with patch.object(FixtureQlooClient, "search_interests", wraps=FixtureQlooClient().search_interests) as mocked:
+            first = search_interests("blade")
+            second = search_interests("blade")
+        self.assertEqual(first, second)
+        self.assertEqual(mocked.call_count, 1)
+
+    def test_overlong_selected_entity_is_rejected(self):
+        with self.assertRaises(ValueError):
+            build_bridge({
+                "profile_a_entities": [{"entity_id": "x" * 201, "name": "X", "entity_type": "urn:entity:movie"}],
+                "profile_b_entities": [{"entity_id": "y", "name": "Y", "entity_type": "urn:entity:movie"}],
+            })
 
     def test_bridge_accepts_explicit_resolved_entities(self):
         result = build_bridge({

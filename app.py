@@ -23,10 +23,14 @@ RATE_WINDOW_SECONDS = 60.0
 SEARCH_LIMIT_PER_MINUTE = 40
 BRIDGE_LIMIT_PER_MINUTE = 12
 BRIDGE_CONCURRENCY = 6
+SEARCH_CACHE_TTL_SECONDS = 300.0
+SEARCH_CACHE_MAX_ITEMS = 256
 
 _rate_lock = threading.Lock()
 _rate_events: dict[tuple[str, str], deque[float]] = defaultdict(deque)
 _bridge_slots = threading.BoundedSemaphore(BRIDGE_CONCURRENCY)
+_search_cache_lock = threading.Lock()
+_search_cache: dict[tuple[str, str], tuple[float, dict]] = {}
 
 
 def _client_key(headers, client_address) -> str:
@@ -90,6 +94,8 @@ def _parse_resolved_entities(value: object, field: str) -> list[ResolvedInterest
         entity_type = raw.get("entity_type")
         if not all(isinstance(x, str) and x.strip() for x in (entity_id, name, entity_type)):
             raise ValueError(f"{field} entries require entity_id, name and entity_type")
+        if len(entity_id) > 200 or len(name) > 200:
+            raise ValueError(f"{field} contains an overlong entity ID or name")
         if entity_type not in SUPPORTED_INPUT_TYPES:
             raise ValueError(f"unsupported input entity type: {entity_type}")
         if entity_id not in seen:
@@ -104,8 +110,19 @@ def search_interests(query: str) -> dict:
     query = " ".join(query.strip().split())
     if len(query) < 2:
         raise ValueError("search query must contain at least 2 characters")
+    if len(query) > 120:
+        raise ValueError("search query must be at most 120 characters")
+
+    mode = os.environ.get("COMMON_GROUND_MODE", "fixture").strip().lower()
+    cache_key = (mode, query.casefold())
+    now = time.monotonic()
+    with _search_cache_lock:
+        cached = _search_cache.get(cache_key)
+        if cached and now - cached[0] < SEARCH_CACHE_TTL_SECONDS:
+            return cached[1]
+
     rows = get_client().search_interests(query, 5)
-    return {
+    result = {
         "query": query,
         "results": [
             {
@@ -117,6 +134,12 @@ def search_interests(query: str) -> dict:
             for row in rows
         ],
     }
+    with _search_cache_lock:
+        if len(_search_cache) >= SEARCH_CACHE_MAX_ITEMS:
+            oldest = min(_search_cache, key=lambda key: _search_cache[key][0])
+            _search_cache.pop(oldest, None)
+        _search_cache[cache_key] = (now, result)
+    return result
 
 
 def health_state() -> tuple[int, dict]:
