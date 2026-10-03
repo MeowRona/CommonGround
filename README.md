@@ -127,8 +127,13 @@ The test suite covers:
 - hard two-round limit;
 - candidate-specific evidence;
 - live search/insight response parsing fixtures;
-- secret-safe HTTP errors.
-- explicit resolved-entity payload validation, so the agent receives stable Qloo IDs instead of reinterpreting a selected label.
+- exact explainability-ID matching without substring false positives;
+- secret-safe HTTP errors;
+- explicit resolved-entity payload validation, so the agent receives stable Qloo IDs instead of reinterpreting a selected label;
+- search caching, request bounds and per-client rate limits;
+- real HTTP handler behavior for `/health`, `/api/search`, `/api/bridge`, allowed/blocked CORS origins and invalid content types;
+- GitHub Pages fixture parity, runtime-config presence and non-blocking Render wake-up polling;
+- smoke/preflight title matching across harmless punctuation/diacritic differences.
 
 ## Submission status
 
