@@ -14,6 +14,8 @@ Recommendation systems are good at answering “what might this person like?” 
 
 CommonGround treats the problem as a two-person decision process rather than one averaged profile.
 
+The concrete use case is simple: two friends, roommates, or partners want to pick one movie together, but their taste signals come from different cultural corners. One person may describe themselves through a film, the other through an artist. CommonGround tries to find the third cultural object they can both plausibly approach — without letting one person's stronger match erase the other's weak one.
+
 ## What it does
 
 Two people provide a few films or artists they like. CommonGround uses Qloo to resolve those cultural entities and discover movie candidates independently for each person.
@@ -37,6 +39,8 @@ The intended live flow is:
 `taste names -> /search -> profile A/B entity IDs -> /v2/insights discovery -> union candidate IDs -> /v2/insights with filter.results.entities for A -> same pool for B -> fairness rank -> feedback -> optional second search`
 
 Live requests use `feature.explainability=true`. The UI shows only evidence that can be tied back to Qloo's explainability payload; otherwise it says no explanation is available.
+
+Qloo is not a replaceable lookup layer here. It supplies the cross-domain entity graph, movie discovery from mixed movie/artist tastes, affinity-ordered evaluation of a controlled candidate pool, and per-result explainability metadata. Without that cultural graph, CommonGround would have no grounded way to move from heterogeneous tastes to a shared movie pool; replacing Qloo with an LLM prompt would turn the core bridge step back into generated guesswork.
 
 ## Ranking
 
@@ -84,6 +88,12 @@ A second challenge was making the workflow genuinely agentic without adding an L
 Multi-user recommendation is partly a decision-policy problem. “Good for the average profile” and “acceptable to both people” are different objectives.
 
 I also learned to treat API scores according to their documented semantics instead of turning them into more intuitive-looking but unsupported percentages. Qloo provides the cultural relationship and ranking signal; CommonGround deliberately keeps its own decision policy simple and inspectable.
+
+## Potential impact
+
+The initial audience is deliberately narrow: pairs of people making repeated shared entertainment choices where “just average our profiles” is a poor social rule. The same interaction pattern can support couples, friends or roommates choosing a movie without making one person's taste the default.
+
+The project does not claim that the current rank heuristic is universally fair or that it improves satisfaction without user testing. What it demonstrates is a concrete product behavior that can be evaluated: both people see the same proposed object, both retain veto power, and the system can return “no confirmed bridge” instead of forcing a recommendation.
 
 ## What's next
 

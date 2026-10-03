@@ -1,5 +1,7 @@
 # Judging readiness
 
+Current Devpost judging criteria are equally weighted: Technological Implementation, Design, Potential Impact, and Quality of the Idea. The rules also note that judges are not required to run the project and may judge from the submitted description/media, so the final screenshots and text must make the Qloo-specific behavior visible without relying on a code walkthrough.
+
 ## Technological implementation
 
 Implemented:
@@ -15,6 +17,7 @@ Implemented:
 - fail-closed parsing and unknown-data handling;
 - fixture-generated public preview;
 - automated tests for the decision and request contracts.
+- public HTTP/CORS/runtime-config tests and a live preflight that exercises search, bridge and veto end to end.
 
 Still required:
 - real hackathon-key smoke test;
@@ -27,9 +30,11 @@ Current interaction focuses on one bridge movie and two visible routes instead o
 
 The mathematical policy and trace are secondary details; the main user action is bilateral feedback.
 
+The final Pages frontend loads immediately even when the free API is asleep, shows the backend wake state, and unlocks live controls automatically after health succeeds.
+
 ## Potential impact
 
-The demonstrated use case is repeated two-person choice where an average-profile recommender can hide a bad experience for one participant. The project does not claim a market-size or superiority result without user testing.
+The demonstrated use case is repeated two-person movie choice for friends, roommates, or partners where an average-profile recommender can hide a weak option for one participant. The project does not claim a market-size, satisfaction lift, or superiority result without user testing.
 
 ## Quality of idea
 
@@ -39,6 +44,8 @@ The distinctive part is the combination of:
 - worse-side rank protection;
 - feedback-driven exclusion and one adaptive second round;
 - explicit willingness to return “no confirmed bridge”.
+
+The public diagnostic makes the non-obvious part inspectable: the deterministic main fixture has zero overlap between A's and B's naive top-3 lists, yet the shared-pool process still recovers a bridge. The final live media should capture the equivalent Qloo-backed state.
 
 ## Hard blockers before final submission
 

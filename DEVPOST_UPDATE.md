@@ -8,6 +8,8 @@ An adaptive Qloo-powered agent that finds one movie two different tastes can rea
 
 CommonGround treats a shared recommendation as a two-person decision problem, not one averaged profile.
 
+It is built for pairs — friends, roommates, or partners — who need one shared movie even when their cultural tastes come from different places.
+
 Each person searches for and selects 1–3 Qloo-recognized films or artists. The app keeps the selected entity ID/type so ambiguous names are not silently guessed. CommonGround then discovers movie candidates independently for both people. CommonGround unions the candidate sets, then asks Qloo to evaluate that same movie pool separately for A and B.
 
 Candidates are ranked by the worse of the two positions first, then by the sum of both positions. Missing evaluation is unknown, not zero.
@@ -15,6 +17,16 @@ Candidates are ranked by the worse of the two positions first, then by the sum o
 The app proposes one movie and shows two different evidence routes. Both people respond with Want to try, Already know it, or Not for me. A veto or already-known result is excluded and triggers one wider second round. After two rounds, CommonGround stops rather than forcing a compromise.
 
 The public GitHub Pages build is currently a clearly labelled fixture preview generated from the Python decision policy while the hackathon API key is pending. It does not claim to show live Qloo output.
+
+### Why Qloo is essential
+
+The bridge step depends on Qloo's cultural graph: it resolves stable movie/artist entities, discovers movies from mixed-domain taste signals, evaluates an identical candidate pool for two different profiles, and provides explainability metadata tied to each result. A generic LLM could generate a plausible movie title, but it would not provide the same grounded two-profile cultural measurement that the decision policy operates on.
+
+The demo makes this visible instead of hiding it. Its diagnostics show the naive top-3 overlap beside the larger same-pool evaluation. In the deterministic fixture, the two top-3 lists have zero overlap, yet same-pool evaluation recovers a bridge. The final live screenshots will show the same diagnostic using real Qloo responses.
+
+### Impact and limits
+
+CommonGround focuses on a specific recurring problem: choosing one thing together without letting the person with the stronger recommendation dominate the result. Both users keep explicit veto power, and the system can stop with no confirmed bridge. It does not claim proven satisfaction gains or universal fairness without user testing.
 
 ## Built with
 
