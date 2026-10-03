@@ -56,6 +56,18 @@ class StaticPreviewTests(unittest.TestCase):
         self.assertIn("attempt<24", html)
         self.assertIn("2500", html)
 
+    def test_feedback_retry_is_single_flight(self):
+        html = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+        self.assertIn("feedbackBusy=true", html)
+        self.assertIn("if(feedbackBusy)return", html)
+        self.assertIn("querySelectorAll('.choice').forEach(x=>x.disabled=true)", html)
+
+    def test_no_bridge_clears_previous_result_state(self):
+        html = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+        self.assertIn("$('rankA').textContent=''", html)
+        self.assertIn("$('evidenceA').innerHTML=''", html)
+        self.assertIn("No confirmed bridge. Try a different pair of taste signals.", html)
+
 
 if __name__ == "__main__":
     unittest.main()
