@@ -39,6 +39,7 @@ Show the proposed bridge card with:
 - B's rank route;
 - Qloo-supported evidence chips when explainability is available.
 - the diagnostic line showing that the naive top-3 intersection can be empty while same-pool evaluation still recovers a bridge.
+- the `input movies excluded` diagnostic, showing that the proposed bridge must be a third object rather than simply echoing one person's seed movie.
 
 Narration idea:
 

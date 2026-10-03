@@ -22,7 +22,7 @@ The public GitHub Pages build is currently a clearly labelled fixture preview ge
 
 The bridge step depends on Qloo's cultural graph: it resolves stable movie/artist entities, discovers movies from mixed-domain taste signals, evaluates an identical candidate pool for two different profiles, and provides explainability metadata tied to each result. A generic LLM could generate a plausible movie title, but it would not provide the same grounded two-profile cultural measurement that the decision policy operates on.
 
-The demo makes this visible instead of hiding it. Its diagnostics show the naive top-3 overlap beside the larger same-pool evaluation. In the deterministic fixture, the two top-3 lists have zero overlap, yet same-pool evaluation recovers a bridge. The final live screenshots will show the same diagnostic using real Qloo responses.
+The demo makes this visible instead of hiding it. Its diagnostics show the naive top-3 overlap, input movies excluded from candidacy, and the larger same-pool evaluation. In the deterministic fixture, the two top-3 lists have zero overlap, yet same-pool evaluation recovers a third-object bridge. The final live screenshots will show the same diagnostics using real Qloo responses.
 
 ### Impact and limits
 

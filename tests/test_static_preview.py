@@ -97,6 +97,14 @@ class StaticPreviewTests(unittest.TestCase):
         self.assertIn("function invalidateSearch(person)", html)
         self.assertIn("invalidateSearch('a');invalidateSearch('b')", html)
 
+    def test_ui_exposes_third_object_seed_exclusion_diagnostic(self):
+        html = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+        self.assertIn("input movies excluded", html)
+        scenario = json.loads(
+            (ROOT / "docs" / "demo_scenarios.json").read_text(encoding="utf-8")
+        )["scenarios"][0]["rounds"][0]
+        self.assertEqual(scenario["diagnostics"]["excluded_seed_movies"], 2)
+
     def test_fixture_mode_uses_scenarios_instead_of_fake_free_text_search(self):
         html = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
         self.assertIn("async function showFixtureSetup()", html)
