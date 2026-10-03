@@ -45,6 +45,12 @@ Old screenshots show the removed percentage-score UI. Replace them after opening
 2. bridge result showing one movie, A/B rank routes, evidence chips and bilateral feedback buttons;
 3. optional second-round screen after a veto.
 
+Suggested captions after the live deployment:
+
+1. **CommonGround — two people select Qloo-recognized films and artists before the bridge search begins.**
+2. **Same-pool evaluation recovers a movie bridge even when the two naive top-3 lists have no overlap.**
+3. **A veto changes the plan: the rejected movie is excluded and CommonGround runs one wider final round.**
+
 Do not final-submit until the live Qloo key smoke test and live backend deployment are complete.
 
 ## Live deployment path

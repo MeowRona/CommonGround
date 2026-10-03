@@ -60,6 +60,43 @@ The agent makes concrete decisions:
 - whether to widen retrieval for the second and final round;
 - when to stop with no confirmed compromise.
 
+## Challenges I ran into
+
+The hardest part was defining what “common ground” should mean without pretending an affinity score is a probability of human enjoyment.
+
+The first prototype intersected short recommendation lists and used synthetic percentage-like scores. That was easy to demo but conceptually weak: a useful bridge can sit just outside one person's short list, and two separate affinity queries are not automatically calibrated as personal satisfaction percentages.
+
+The final design therefore changed the problem. It unions candidates discovered from both profiles, evaluates the **same candidate pool** for each person with Qloo, then ranks by the worse of the two positions. Missing evaluation stays unknown instead of becoming a negative preference.
+
+A second challenge was making the workflow genuinely agentic without adding an LLM just for appearance. Feedback now changes the next API action: a rejected/known movie is excluded, retrieval widens once, and the agent has a hard stop after round two.
+
+## Accomplishments that I am proud of
+
+- The main fixture demonstrates a concrete failure of naive intersection: A's top 3 and B's top 3 have **zero overlap**, while same-pool evaluation still recovers a bridge (`Arrival`, A #3 / B #4 in the fixture).
+- The public demo never invents a recommendation for arbitrary text while Qloo is unavailable.
+- Selected tastes are stable Qloo entity IDs, not ambiguous free-text labels.
+- Qloo explainability is surfaced only when the input entity ID is actually present in the response metadata.
+- A veto is persistent and changes the second-round query rather than merely changing presentation.
+- The repository has a deterministic fixture preview, a live Qloo path, deployment configuration, abuse protection and an automated release preflight.
+
+## What I learned
+
+Multi-user recommendation is partly a decision-policy problem. “Good for the average profile” and “acceptable to both people” are different objectives.
+
+I also learned to treat API scores according to their documented semantics instead of turning them into more intuitive-looking but unsupported percentages. Qloo provides the cultural relationship and ranking signal; CommonGround deliberately keeps its own decision policy simple and inspectable.
+
+## What's next
+
+Before final submission:
+
+1. validate the competition API key against `/search` and `/v2/insights`;
+2. verify the exact live explainability response structure;
+3. deploy the prepared Render backend with the key server-side;
+4. point the existing GitHub Pages frontend at that live API;
+5. run the end-to-end preflight and replace fixture screenshots with live screenshots.
+
+Beyond the hackathon, the same two-person bridge loop could be tested with other Qloo-supported cultural domains, but the submission intentionally keeps the output domain to movies so the core behavior stays easy to verify.
+
 ## Public preview
 
 - Preview: https://meowrona.github.io/CommonGround/
@@ -72,5 +109,5 @@ The current public Pages build is a clearly labelled fixture preview generated f
 - validate real competition-key responses;
 - verify exact explainability structure;
 - deploy the live Python backend for free;
-- update screenshots and public demo URL;
+- point the existing Pages frontend at the live backend and update screenshots;
 - re-check rules and final statements against the shipped build.
