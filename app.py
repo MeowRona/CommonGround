@@ -304,14 +304,15 @@ class Handler(BaseHTTPRequestHandler):
             )
             return
         try:
-            if "application/json" not in self.headers.get("Content-Type", "").lower():
+            media_type = self.headers.get("Content-Type", "").split(";", 1)[0].strip().lower()
+            if media_type != "application/json":
                 raise ValueError("Content-Type must be application/json")
             length = int(self.headers.get("Content-Length", "0"))
             if length <= 0 or length > 64_000:
                 raise ValueError("invalid request size")
             payload = json.loads(self.rfile.read(length).decode("utf-8"))
             result = build_bridge(payload)
-        except (ValueError, json.JSONDecodeError) as exc:
+        except (ValueError, UnicodeDecodeError, json.JSONDecodeError, RecursionError) as exc:
             self._send_json(HTTPStatus.BAD_REQUEST, {"error": str(exc)})
             return
         except RuntimeError as exc:

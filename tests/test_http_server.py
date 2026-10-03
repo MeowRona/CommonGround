@@ -118,6 +118,42 @@ class HttpServerTests(unittest.TestCase):
             urlopen(request, timeout=3)
         self.assertEqual(ctx.exception.code, 400)
 
+    def test_bridge_rejects_jsonp_content_type(self):
+        request = Request(
+            f"{self.base}/api/bridge",
+            data=b"{}",
+            headers={"Content-Type": "application/jsonp"},
+            method="POST",
+        )
+        with self.assertRaises(HTTPError) as ctx:
+            urlopen(request, timeout=3)
+        self.assertEqual(ctx.exception.code, 400)
+
+    def test_bridge_accepts_json_content_type_with_charset(self):
+        payload = {
+            "profile_a": ["Blade Runner", "Aphex Twin"],
+            "profile_b": ["Amelie", "Daft Punk"],
+        }
+        request = Request(
+            f"{self.base}/api/bridge",
+            data=json.dumps(payload).encode("utf-8"),
+            headers={"Content-Type": "application/json; charset=utf-8"},
+            method="POST",
+        )
+        with urlopen(request, timeout=3) as response:
+            self.assertEqual(response.status, 200)
+
+    def test_bridge_rejects_invalid_utf8_with_400(self):
+        request = Request(
+            f"{self.base}/api/bridge",
+            data=b'\xff\xfe{"x":1}',
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with self.assertRaises(HTTPError) as ctx:
+            urlopen(request, timeout=3)
+        self.assertEqual(ctx.exception.code, 400)
+
     def test_bridge_rejects_invalid_round_type_with_400(self):
         payload = {
             "profile_a": ["Blade Runner", "Aphex Twin"],
