@@ -55,7 +55,8 @@ Only candidates measured for both people are eligible. CommonGround sorts by:
 
 1. lower `max(rank_A, rank_B)`;
 2. lower `rank_A + rank_B`;
-3. stable name order as a deterministic final tie-break.
+3. stable name order;
+4. entity ID as the final deterministic tie-break when two different entities even share the same name.
 
 This is a transparent least-misery-style heuristic, not a claim that rank is a probability of enjoyment.
 

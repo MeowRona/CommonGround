@@ -29,6 +29,18 @@ class RankingTests(unittest.TestCase):
         self.assertEqual(ranked[0].entity_id, "bridge")
         self.assertEqual(ranked[0].worst_rank, 6)
 
+    def test_perfect_tie_uses_entity_id_for_deterministic_order(self):
+        a = [
+            row("movie:b", 2, "Same Name"),
+            row("movie:a", 2, "Same Name"),
+        ]
+        b = [
+            row("movie:a", 2, "Same Name"),
+            row("movie:b", 2, "Same Name"),
+        ]
+        ranked = rank_bridges(a, b)
+        self.assertEqual([x.entity_id for x in ranked], ["movie:a", "movie:b"])
+
     def test_missing_evaluation_is_unknown_not_zero(self):
         a = [row("a-only", 1), row("shared", 2)]
         b = [row("shared", 4)]

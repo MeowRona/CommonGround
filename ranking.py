@@ -62,5 +62,12 @@ def rank_bridges(
                 evidence_b=b.evidence,
             )
         )
-    rows.sort(key=lambda row: (row.worst_rank, row.rank_sum, row.name.casefold()))
+    rows.sort(
+        key=lambda row: (
+            row.worst_rank,
+            row.rank_sum,
+            row.name.casefold(),
+            row.entity_id,
+        )
+    )
     return rows[:limit]
