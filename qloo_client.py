@@ -75,6 +75,8 @@ def build_insights_params(
     }
     results = [x.strip() for x in result_ids if x.strip()]
     excludes = [x.strip() for x in exclude_ids if x.strip()]
+    if len(results) > 50:
+        raise ValueError("filter.results.entities may contain at most 50 entity IDs")
     if results:
         params["filter.results.entities"] = ",".join(results)
     if excludes:
@@ -223,7 +225,7 @@ class RealQlooClient:
             if entity_id and entity_name and entity_type and entity_id not in seen:
                 seen.add(entity_id)
                 candidates.append(ResolvedInterest(entity_id, entity_name, entity_type))
-        return candidates
+        return candidates[:take]
 
     def resolve_interests(self, names: Iterable[str]) -> list[ResolvedInterest]:
         resolved: list[ResolvedInterest] = []
@@ -262,7 +264,7 @@ class RealQlooClient:
             if entity_id and name and entity_id not in seen:
                 seen.add(entity_id)
                 rows.append(CandidateRef(entity_id, name))
-        return rows
+        return rows[:take]
 
     def evaluate_candidates(
         self,
@@ -271,9 +273,11 @@ class RealQlooClient:
     ) -> list[CandidateEvaluation]:
         if not candidate_ids:
             return []
+        if len(candidate_ids) > 50:
+            raise ValueError("same-pool evaluation supports at most 50 candidate IDs")
         params = build_insights_params(
             [x.entity_id for x in interests],
-            take=min(50, len(candidate_ids)),
+            take=len(candidate_ids),
             result_ids=candidate_ids,
         )
         payload = self.transport.get_json("/v2/insights", params)

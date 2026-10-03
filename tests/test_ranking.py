@@ -63,6 +63,14 @@ class RankingTests(unittest.TestCase):
         self.assertEqual(params["feature.explainability"], "true")
         self.assertEqual(params["sort_by"], "affinity")
 
+    def test_same_pool_request_rejects_more_than_50_result_ids(self):
+        with self.assertRaises(ValueError):
+            build_insights_params(
+                ["seed-a"],
+                50,
+                result_ids=[f"movie-{i}" for i in range(51)],
+            )
+
     def test_transport_wraps_http_error_without_leaking_key(self):
         transport = QlooTransport(api_key="super-secret-test-key")
         error = HTTPError("https://example.invalid", 401, "Unauthorized", {}, None)
@@ -166,6 +174,46 @@ class RankingTests(unittest.TestCase):
             ("m1", "urn:entity:movie"),
             ("a1", "urn:entity:artist"),
         ])
+
+    def test_real_search_enforces_take_even_if_api_overreturns(self):
+        class FakeTransport:
+            def get_json(self, path, params):
+                return {
+                    "results": [
+                        {"entity_id": f"m{i}", "name": f"Movie {i}", "types": ["urn:entity:movie"]}
+                        for i in range(10)
+                    ]
+                }
+
+        rows = RealQlooClient(FakeTransport()).search_interests("movie", 3)
+        self.assertEqual(len(rows), 3)
+
+    def test_discovery_enforces_take_even_if_api_overreturns(self):
+        class FakeTransport:
+            def get_json(self, path, params):
+                return {
+                    "results": {
+                        "entities": [
+                            {"entity_id": f"m{i}", "name": f"Movie {i}"}
+                            for i in range(60)
+                        ]
+                    }
+                }
+
+        client = RealQlooClient(FakeTransport())
+        interest = type("I", (), {"entity_id": "seed:a", "name": "A", "entity_type": "urn:entity:movie"})()
+        rows = client.discover_candidates([interest], take=25)
+        self.assertEqual(len(rows), 25)
+
+    def test_evaluation_rejects_candidate_pool_above_50(self):
+        class FakeTransport:
+            def get_json(self, path, params):
+                raise AssertionError("transport should not be called")
+
+        client = RealQlooClient(FakeTransport())
+        interest = type("I", (), {"entity_id": "seed:a", "name": "A", "entity_type": "urn:entity:movie"})()
+        with self.assertRaises(ValueError):
+            client.evaluate_candidates([interest], [f"m{i}" for i in range(51)])
 
     def test_real_client_parses_same_pool_rank_and_literal_explainability(self):
         class FakeTransport:
