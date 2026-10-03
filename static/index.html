@@ -3,6 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <meta name="description" content="CommonGround finds one movie that two different tastes can approach from different directions.">
   <title>CommonGround — find the bridge</title>
   <style>
@@ -31,11 +34,11 @@
   </section>
 
   <section class="workspace">
-    <div id="notice" class="notice" aria-live="polite">Loading preview…</div>
+    <div id="notice" class="notice" aria-live="polite">Preparing CommonGround…</div>
     <div id="setup" class="setup">
-      <div class="field"><label>Person A</label><input disabled value="Loading…"></div>
-      <div class="field"><label>Person B</label><input disabled value="Loading…"></div>
-      <button id="go" class="go" disabled>Find a bridge</button>
+      <div class="field"><label>Person A</label><input disabled value="Starting…"></div>
+      <div class="field"><label>Person B</label><input disabled value="Starting…"></div>
+      <button id="go" class="go" disabled>Starting…</button>
     </div>
     <div id="stage" class="stage">
       <div class="roundbar"><span id="roundText"></span><strong id="policyText"></strong><button id="reset" class="choice" type="button">Change tastes</button></div>
@@ -59,7 +62,7 @@
       </div>
       <details><summary>Show agent actions</summary><div id="trace" class="trace"></div></details>
     </div>
-    <div id="initial" class="initial" aria-live="polite">Loading CommonGround mode…</div>
+    <div id="initial" class="initial" aria-live="polite">CommonGround is starting. If this message remains visible, open the latest build link from the README.</div>
   </section>
 </main>
 <script>
@@ -106,7 +109,7 @@ function refreshBackendStatus(attempt=0){fetch(apiUrl('/health'),{cache:'no-stor
 async function start(){const go=$('go');const originalLabel=go.textContent;try{go.disabled=true;round=1;rejected=[];if(STATIC){const id=$('scenario').value;scenario=scenarios.find(x=>x.id===id);setInteractiveEnabled(false);render(scenario.rounds[0]);}else{if(!selected.a.length||!selected.b.length)throw new Error('Select at least one recognized film or artist for each person.');invalidateSearch('a');invalidateSearch('b');activeProfiles={a:selected.a.map(x=>({...x})),b:selected.b.map(x=>({...x}))};setInteractiveEnabled(false);go.textContent='Finding bridge…';$('initial').style.display='block';$('initial').className='initial';$('initial').textContent=OPEN_DATA?'Wikimedia is resolving pages, finding related culture and filtering movie candidates…':'Qloo is discovering candidates and evaluating the same movie pool for both people…';const result=await requestBridge(1);go.textContent=originalLabel;render(result)}}catch(e){activeProfiles=null;go.textContent=originalLabel;$('stage').style.display='none';$('initial').style.display='block';$('initial').className='error';$('initial').textContent=e.message;setInteractiveEnabled(true)}}
 async function react(btn){if(feedbackBusy)return;const p=btn.dataset.person;reactions[p]=btn.dataset.value;document.querySelectorAll(`[data-person="${p}"]`).forEach(x=>x.classList.toggle('selected',x===btn));if(!reactions.a||!reactions.b)return;const decision=$('decision');if(reactions.a==='try'&&reactions.b==='try'){decision.className='decision good';decision.textContent='Common ground confirmed by both people. This is the success condition.';return}if(round>=2){decision.className='decision bad';decision.textContent='No confirmed bridge after two rounds. CommonGround stops instead of forcing a compromise.';return}feedbackBusy=true;document.querySelectorAll('.choice').forEach(x=>x.disabled=true);rejected.push(current.bridge.entity_id);decision.textContent='Feedback changed the plan: exclude this movie and widen the second search…';round=2;try{const next=STATIC?scenario.rounds[1]:await requestBridge(2);render(next)}catch(e){feedbackBusy=false;document.querySelectorAll('.choice').forEach(x=>x.disabled=false);decision.className='decision bad';decision.textContent=e.message}}
 async function boot(){$('reset').onclick=resetSession;if(PAGES&&!FORCE_STATIC){try{const cfg=await fetch('./runtime_config.json',{cache:'no-store'}).then(r=>r.json());if(typeof cfg.api_base==='string'&&cfg.api_base.startsWith('https://')){API_BASE=cfg.api_base.replace(/\/$/,'')}}catch(_){}if(!API_BASE){OPEN_DATA=true;STATIC=false;$('mode').textContent='open-data test — NOT Qloo';$('notice').textContent='Temporary mode: Wikidata + Wikipedia are powering search and bridge testing while the Qloo hackathon key is pending.';$('initial').className='initial';$('initial').textContent='Search for real films, artists or people. Results are open-data similarity, not Qloo affinity.';showInteractiveSetup();return}}if(STATIC){await showFixtureSetup();return}if(!PAGES&&!API_BASE){try{const r=await fetch('/health',{cache:'no-store'});const h=await r.json();if(h.mode!=='live'){STATIC=true;await showFixtureSetup();return}}catch(_){STATIC=true;await showFixtureSetup();return}}$('mode').textContent=API_BASE?'live backend warming':'live Qloo';$('notice').textContent=API_BASE?'Waking the live Qloo backend in the background…':'Live Qloo mode.';showInteractiveSetup();refreshBackendStatus();}
-boot();
+boot().catch(async e=>{console.error(e);OPEN_DATA=true;STATIC=false;API_BASE='';$('mode').textContent='open-data test — NOT Qloo';$('notice').textContent='Recovered into temporary Wikimedia mode after a startup error.';$('initial').className='error';$('initial').textContent='Startup recovered. Search is available below; this is NOT Qloo.';showInteractiveSetup();});
 </script>
 </body>
 </html>

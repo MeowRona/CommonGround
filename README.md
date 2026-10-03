@@ -2,6 +2,8 @@
 
 **Public preview:** https://meowrona.github.io/CommonGround/
 
+**Latest-build cache-bypass:** https://meowrona.github.io/CommonGround/?build=20261003-open-data-v1
+
 **Public source:** https://github.com/MeowRona/CommonGround
 
 **Architecture:** [ARCHITECTURE.md](ARCHITECTURE.md)
