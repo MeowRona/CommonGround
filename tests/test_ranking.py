@@ -207,7 +207,28 @@ class RankingTests(unittest.TestCase):
         rows = client.evaluate_candidates(interests, ["movie:arrival", "movie:her"])
         self.assertEqual([(x.entity_id, x.name, x.rank) for x in rows], [
             ("movie:arrival", "Arrival", 1),
-            ("movie:her", "Her", 3),
+            ("movie:her", "Her", 2),
+        ])
+
+    def test_unrequested_insight_entity_does_not_shift_rank(self):
+        class FakeTransport:
+            def get_json(self, path, params):
+                return {
+                    "results": {
+                        "entities": [
+                            {"entity_id": "movie:noise", "name": "Noise"},
+                            {"entity_id": "movie:arrival", "name": "Arrival"},
+                            {"entity_id": "movie:her", "name": "Her"},
+                        ]
+                    }
+                }
+
+        client = RealQlooClient(FakeTransport())
+        interests = [type("I", (), {"entity_id": "seed:a", "name": "A", "entity_type": "urn:entity:movie"})()]
+        rows = client.evaluate_candidates(interests, ["movie:arrival", "movie:her"])
+        self.assertEqual([(x.entity_id, x.rank) for x in rows], [
+            ("movie:arrival", 1),
+            ("movie:her", 2),
         ])
 
     def test_explainability_does_not_match_entity_id_as_substring(self):

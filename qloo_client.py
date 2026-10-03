@@ -278,11 +278,12 @@ class RealQlooClient:
         payload = self.transport.get_json("/v2/insights", params)
         rows: list[CandidateEvaluation] = []
         seen: set[str] = set()
-        for rank, row in enumerate(_insight_rows(payload), start=1):
+        for row in _insight_rows(payload):
             entity_id = _entity_id(row)
             name = _entity_name(row)
             if entity_id and name and entity_id in candidate_ids and entity_id not in seen:
                 seen.add(entity_id)
+                rank = len(rows) + 1
                 rows.append(
                     CandidateEvaluation(
                         entity_id=entity_id,
