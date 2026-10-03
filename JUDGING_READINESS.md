@@ -19,7 +19,7 @@ Implemented:
 Still required:
 - real hackathon-key smoke test;
 - exact live response/explainability verification;
-- live backend deployment.
+- live Render API deployment and Pages runtime configuration.
 
 ## Design
 
@@ -44,6 +44,6 @@ The distinctive part is the combination of:
 
 1. Qloo API key.
 2. Live schema smoke test.
-3. Free backend host.
-4. Replace fixture preview with live public demo.
-5. Final human review and Devpost submission.
+3. Deploy the prepared Render Free API.
+4. Point the existing Pages frontend at the verified live API and pass `submission_preflight.py`.
+5. Final live screenshots, human review and Devpost submission.

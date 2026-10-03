@@ -48,7 +48,13 @@ class StaticPreviewTests(unittest.TestCase):
     def test_live_ui_renders_before_background_health_check(self):
         html = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
         self.assertIn("showInteractiveSetup();refreshBackendStatus();", html)
-        self.assertIn("function refreshBackendStatus()", html)
+        self.assertIn("function refreshBackendStatus(", html)
+
+    def test_live_backend_wake_retries_and_unlocks_controls(self):
+        html = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+        self.assertIn("setInteractiveEnabled(true)", html)
+        self.assertIn("attempt<24", html)
+        self.assertIn("2500", html)
 
 
 if __name__ == "__main__":

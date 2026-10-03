@@ -59,7 +59,7 @@ The live client already implements:
 - parallel A/B discovery and same-pool evaluation to avoid unnecessary serial API latency.
 - lightweight per-client rate limits and a bridge-concurrency cap so a public demo cannot trivially burn through the hackathon API allowance.
 
-The remaining live gate is a real hackathon API key and one schema smoke test against the competition environment.
+The remaining live gate is the real hackathon API key, live schema verification, and deployment of the already-prepared Render API.
 
 Official API key request form: https://forms.gle/zz12orkLHTAneLGz6
 
@@ -137,6 +137,6 @@ Public preview and public source are ready. **Do not final-submit yet.** The rem
 1. receive the Qloo hackathon API key;
 2. run live `/search` and `/v2/insights` smoke tests;
 3. verify the exact live explainability fields;
-4. deploy the Python backend on a genuinely free host with the key stored server-side;
-5. replace the fixture Pages URL with the live demo URL in Devpost;
-6. final human review and submission.
+4. deploy the Python backend on Render Free with the key stored server-side;
+5. point `docs/runtime_config.json` at that verified live API while keeping the same GitHub Pages demo URL;
+6. run the final preflight, capture live screenshots, and complete human review/submission.
