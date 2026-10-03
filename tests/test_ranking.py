@@ -157,6 +157,19 @@ class RankingTests(unittest.TestCase):
         self.assertEqual(result[0].entity_id, "seed:blade")
         self.assertEqual(result[0].entity_type, "urn:entity:movie")
 
+    def test_real_client_does_not_silently_accept_single_non_exact_search_hit(self):
+        class FakeTransport:
+            def get_json(self, path, params):
+                return {
+                    "results": [
+                        {"entity_id": "m1", "name": "Different Movie", "types": ["urn:entity:movie"]}
+                    ]
+                }
+
+        client = RealQlooClient(FakeTransport())
+        with self.assertRaises(ValueError):
+            client.resolve_interests(["Requested Movie"])
+
     def test_real_search_filters_unsupported_types_and_duplicates(self):
         class FakeTransport:
             def get_json(self, path, params):

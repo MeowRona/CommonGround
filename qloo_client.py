@@ -236,8 +236,6 @@ class RealQlooClient:
             exact = [x for x in candidates if x.name.casefold() == name.casefold()]
             if len(exact) == 1:
                 resolved.append(exact[0])
-            elif len(candidates) == 1:
-                resolved.append(candidates[0])
             elif not candidates:
                 raise ValueError(f"Qloo could not resolve interest: {name}")
             else:

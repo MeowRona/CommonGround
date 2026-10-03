@@ -26,6 +26,8 @@ The browser calls `GET /api/search?q=...`. The server calls Qloo `/search` with 
 
 The browser sends selected IDs back in `profile_a_entities` and `profile_b_entities`. The Qloo API key never reaches the browser.
 
+In live mode the bridge endpoint rejects legacy raw-name profiles entirely. A live bridge can only start from entities explicitly selected through `/api/search`, preventing a second hidden name-to-entity guess inside the agent.
+
 ## 2. Candidate discovery
 
 For each profile, the server calls `/v2/insights` with:

@@ -90,7 +90,8 @@ def get_client():
 def build_bridge(payload: dict) -> dict:
     if not isinstance(payload, dict):
         raise ValueError("JSON body must be an object")
-    agent = CommonGroundAgent(get_client())
+    client = get_client()
+    agent = CommonGroundAgent(client)
     raw_round = payload.get("round", 1)
     if isinstance(raw_round, bool) or not isinstance(raw_round, int):
         raise ValueError("round must be an integer")
@@ -100,6 +101,10 @@ def build_bridge(payload: dict) -> dict:
         a = _parse_resolved_entities(payload.get("profile_a_entities"), "profile_a_entities")
         b = _parse_resolved_entities(payload.get("profile_b_entities"), "profile_b_entities")
         return agent.run_resolved(a, b, round_no=round_no, rejected_ids=rejected_ids)
+    if client.mode == "live":
+        raise ValueError(
+            "live mode requires profile_a_entities and profile_b_entities selected through /api/search"
+        )
     return agent.run(
         payload.get("profile_a", []),
         payload.get("profile_b", []),

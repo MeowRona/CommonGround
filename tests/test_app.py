@@ -52,6 +52,16 @@ class AppTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             build_bridge({"profile_a": ["qwertyuiop"], "profile_b": ["asdfghjkl"]})
 
+    def test_live_mode_requires_explicit_resolved_entities(self):
+        os.environ["COMMON_GROUND_MODE"] = "live"
+        os.environ["QLOO_API_KEY"] = "test-only-key"
+        with self.assertRaises(ValueError) as ctx:
+            build_bridge({
+                "profile_a": ["Blade Runner", "Aphex Twin"],
+                "profile_b": ["Amelie", "Daft Punk"],
+            })
+        self.assertIn("requires profile_a_entities", str(ctx.exception))
+
     def test_non_object_payload_is_rejected(self):
         with self.assertRaises(ValueError):
             build_bridge(["not", "an", "object"])
