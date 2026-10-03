@@ -29,6 +29,8 @@ The core interaction is intentionally narrow:
 9. a veto or already-known result is excluded and triggers one wider second round (25 candidates per side, keeping the union within Qloo's 50-result request window);
 10. after two rounds, the agent stops rather than forcing a compromise.
 
+The public fixture deliberately includes a case where A's top 3 and B's top 3 have **zero overlap**, yet evaluating the union for both profiles recovers `Arrival` at A #3 / B #4. This makes the reason for same-pool evaluation directly inspectable instead of merely claiming that it helps.
+
 ## Why Qloo matters
 
 Without Qloo, the intended product loses its core capability: cross-domain cultural relationships from inputs such as films + artists to a movie candidate pool, plus per-result explainability metadata.

@@ -91,6 +91,15 @@
               "explanation": "Same candidate evaluated for both profiles: A ranks it #4, B ranks it #5."
             }
           ],
+          "diagnostics": {
+            "discovered_a": 8,
+            "discovered_b": 8,
+            "top3_overlap": 0,
+            "candidate_pool": 8,
+            "evaluated_a": 8,
+            "evaluated_b": 8,
+            "complete_candidates": 8
+          },
           "policy": "minimize worse rank, then total rank; missing evaluation stays unknown",
           "trace": [
             {
@@ -99,7 +108,7 @@
             },
             {
               "name": "Build a shared candidate pool",
-              "detail": "Round 1: unioned 8 movie candidate(s) from both searches."
+              "detail": "Round 1: top-3 overlap was 0; unioned 8 movie candidate(s) from both searches."
             },
             {
               "name": "Evaluate the same movies for both people",
@@ -190,6 +199,15 @@
               "explanation": "Same candidate evaluated for both profiles: A ranks it #1, B ranks it #6."
             }
           ],
+          "diagnostics": {
+            "discovered_a": 7,
+            "discovered_b": 7,
+            "top3_overlap": 0,
+            "candidate_pool": 7,
+            "evaluated_a": 7,
+            "evaluated_b": 7,
+            "complete_candidates": 7
+          },
           "policy": "minimize worse rank, then total rank; missing evaluation stays unknown",
           "trace": [
             {
@@ -198,7 +216,7 @@
             },
             {
               "name": "Build a shared candidate pool",
-              "detail": "Round 2: unioned 7 movie candidate(s) from both searches after excluding 1 vetoed/known item(s)."
+              "detail": "Round 2: top-3 overlap was 0; unioned 7 movie candidate(s) from both searches after excluding 1 vetoed/known item(s)."
             },
             {
               "name": "Evaluate the same movies for both people",
@@ -302,6 +320,15 @@
               "explanation": "Same candidate evaluated for both profiles: A ranks it #2, B ranks it #4."
             }
           ],
+          "diagnostics": {
+            "discovered_a": 8,
+            "discovered_b": 8,
+            "top3_overlap": 1,
+            "candidate_pool": 8,
+            "evaluated_a": 8,
+            "evaluated_b": 8,
+            "complete_candidates": 8
+          },
           "policy": "minimize worse rank, then total rank; missing evaluation stays unknown",
           "trace": [
             {
@@ -310,7 +337,7 @@
             },
             {
               "name": "Build a shared candidate pool",
-              "detail": "Round 1: unioned 8 movie candidate(s) from both searches."
+              "detail": "Round 1: top-3 overlap was 1; unioned 8 movie candidate(s) from both searches."
             },
             {
               "name": "Evaluate the same movies for both people",
@@ -401,6 +428,15 @@
               "explanation": "Same candidate evaluated for both profiles: A ranks it #5, B ranks it #3."
             }
           ],
+          "diagnostics": {
+            "discovered_a": 7,
+            "discovered_b": 7,
+            "top3_overlap": 2,
+            "candidate_pool": 7,
+            "evaluated_a": 7,
+            "evaluated_b": 7,
+            "complete_candidates": 7
+          },
           "policy": "minimize worse rank, then total rank; missing evaluation stays unknown",
           "trace": [
             {
@@ -409,7 +445,7 @@
             },
             {
               "name": "Build a shared candidate pool",
-              "detail": "Round 2: unioned 7 movie candidate(s) from both searches after excluding 1 vetoed/known item(s)."
+              "detail": "Round 2: top-3 overlap was 2; unioned 7 movie candidate(s) from both searches after excluding 1 vetoed/known item(s)."
             },
             {
               "name": "Evaluate the same movies for both people",

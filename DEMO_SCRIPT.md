@@ -38,6 +38,7 @@ Show the proposed bridge card with:
 - A's rank route;
 - B's rank route;
 - Qloo-supported evidence chips when explainability is available.
+- the diagnostic line showing that the naive top-3 intersection can be empty while same-pool evaluation still recovers a bridge.
 
 Narration idea:
 
@@ -78,4 +79,3 @@ Capture three final images for Devpost:
 1. entity-selection screen with Qloo-recognized films/artists;
 2. first live bridge showing A/B ranks and real explainability evidence;
 3. second-round result after a veto.
-

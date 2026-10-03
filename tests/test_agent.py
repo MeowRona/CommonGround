@@ -87,6 +87,14 @@ class AgentTests(unittest.TestCase):
         self.assertTrue(bridge["evidence_b"])
         self.assertLessEqual(len(bridge["evidence_a"]), 2)
 
+    def test_same_pool_recovers_bridge_when_top3_intersection_is_empty(self):
+        result = CommonGroundAgent(FixtureQlooClient()).run(
+            ["Blade Runner", "Aphex Twin"], ["Amelie", "Daft Punk"]
+        )
+        self.assertEqual(result["diagnostics"]["top3_overlap"], 0)
+        self.assertGreater(result["diagnostics"]["complete_candidates"], 0)
+        self.assertEqual(result["bridge"]["name"], "Arrival")
+
 
 if __name__ == "__main__":
     unittest.main()

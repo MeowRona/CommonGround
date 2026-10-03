@@ -140,10 +140,14 @@ class CommonGroundAgent:
             candidates_a = future_a.result()
             candidates_b = future_b.result()
         pool = _stable_union(candidates_a, candidates_b)
+        top3_overlap = len(
+            {row.entity_id for row in candidates_a[:3]}
+            & {row.entity_id for row in candidates_b[:3]}
+        )
         trace.append(
             AgentStep(
                 "Build a shared candidate pool",
-                f"Round {round_no}: unioned {len(pool)} movie candidate(s) from both searches"
+                f"Round {round_no}: top-3 overlap was {top3_overlap}; unioned {len(pool)} movie candidate(s) from both searches"
                 + (f" after excluding {len(rejected)} vetoed/known item(s)." if rejected else "."),
             )
         )
@@ -166,6 +170,18 @@ class CommonGroundAgent:
         )
 
         bridges = rank_bridges(eval_a, eval_b, limit=3)
+        complete_count = len(
+            {row.entity_id for row in eval_a} & {row.entity_id for row in eval_b}
+        )
+        diagnostics = {
+            "discovered_a": len(candidates_a),
+            "discovered_b": len(candidates_b),
+            "top3_overlap": top3_overlap,
+            "candidate_pool": len(pool),
+            "evaluated_a": len(eval_a),
+            "evaluated_b": len(eval_b),
+            "complete_candidates": complete_count,
+        }
         if not bridges:
             return {
                 "mode": self.client.mode,
@@ -178,6 +194,7 @@ class CommonGroundAgent:
                 },
                 "bridge": None,
                 "alternatives": [],
+                "diagnostics": diagnostics,
                 "policy": "minimize worse rank, then total rank; missing evaluation stays unknown",
                 "trace": [step.as_dict() for step in trace],
             }
@@ -199,6 +216,7 @@ class CommonGroundAgent:
             },
             "bridge": bridges[0].as_dict(),
             "alternatives": [row.as_dict() for row in bridges[1:]],
+            "diagnostics": diagnostics,
             "policy": "minimize worse rank, then total rank; missing evaluation stays unknown",
             "trace": [step.as_dict() for step in trace],
         }
