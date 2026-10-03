@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import threading
 import unicodedata
 from pathlib import Path
 
@@ -22,11 +23,17 @@ class RecordingTransport:
     def __init__(self, transport: QlooTransport):
         self.transport = transport
         self.calls: list[dict] = []
+        self._lock = threading.Lock()
 
     def get_json(self, path: str, params: dict | None = None) -> dict:
         payload = self.transport.get_json(path, params)
-        self.calls.append({"path": path, "params": params or {}, "response": payload})
+        with self._lock:
+            self.calls.append({"path": path, "params": params or {}, "response": payload})
         return payload
+
+    def snapshot(self) -> list[dict]:
+        with self._lock:
+            return list(self.calls)
 
 
 def comparable_name(value: str) -> str:
@@ -52,6 +59,42 @@ def resolve_exact(client: RealQlooClient, names: list[str], expected_types: list
     return resolved
 
 
+def validate_round_contract(
+    calls: list[dict], *, expected_discovery_take: int, rejected_id: str | None = None
+) -> dict:
+    insights = [call for call in calls if call.get("path") == "/v2/insights"]
+    discovery = [call for call in insights if "filter.results.entities" not in call.get("params", {})]
+    evaluation = [call for call in insights if "filter.results.entities" in call.get("params", {})]
+
+    if len(discovery) != 2 or len(evaluation) != 2:
+        raise RuntimeError(
+            f"Expected 2 discovery + 2 same-pool Insights calls, got {len(discovery)} + {len(evaluation)}"
+        )
+    if any(call["params"].get("take") != expected_discovery_take for call in discovery):
+        raise RuntimeError("Discovery take does not match the agent round contract")
+
+    pools = {call["params"].get("filter.results.entities", "") for call in evaluation}
+    if len(pools) != 1 or not next(iter(pools), ""):
+        raise RuntimeError("A and B were not evaluated against one identical non-empty movie pool")
+    pool_ids = [value for value in next(iter(pools)).split(",") if value]
+    if len(pool_ids) > 50:
+        raise RuntimeError("Same-pool evaluation exceeded the Qloo 50-result request limit")
+
+    if rejected_id:
+        if rejected_id in pool_ids:
+            raise RuntimeError("Rejected movie leaked back into the second-round evaluation pool")
+        for call in discovery:
+            excluded = str(call["params"].get("filter.exclude.entities", "")).split(",")
+            if rejected_id not in excluded:
+                raise RuntimeError("Second-round discovery did not send filter.exclude.entities")
+
+    return {
+        "discovery_calls": len(discovery),
+        "evaluation_calls": len(evaluation),
+        "same_pool_size": len(pool_ids),
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Read-only Qloo live contract smoke test")
     parser.add_argument(
@@ -74,25 +117,16 @@ def main(argv: list[str] | None = None) -> int:
         print("resolve:A", [(x.name, x.entity_type) for x in a])
         print("resolve:B", [(x.name, x.entity_type) for x in b])
 
-        candidates_a = client.discover_candidates(a, take=20, exclude_ids=[])
-        candidates_b = client.discover_candidates(b, take=20, exclude_ids=[])
-        union_ids = list(dict.fromkeys([x.entity_id for x in candidates_a + candidates_b]))
-        print(
-            "discover:",
-            {"A": len(candidates_a), "B": len(candidates_b), "union": len(union_ids)},
-        )
-        if not union_ids:
-            raise RuntimeError("Qloo returned no movie candidates")
-
-        eval_a = client.evaluate_candidates(a, union_ids)
-        eval_b = client.evaluate_candidates(b, union_ids)
-        print("same_pool:", {"A": len(eval_a), "B": len(eval_b)})
-        if not eval_a or not eval_b:
-            raise RuntimeError("Same-pool evaluation returned no rows for one profile")
-
+        round1_start = len(recorder.snapshot())
         bridge = CommonGroundAgent(client).run_resolved(a, b)
         if not bridge.get("bridge"):
             raise RuntimeError("No bridge survived complete evaluation")
+        round1_calls = recorder.snapshot()[round1_start:]
+        round1_contract = validate_round_contract(
+            round1_calls, expected_discovery_take=20
+        )
+        print("round1_contract:", round1_contract)
+        print("round1_diagnostics:", bridge.get("diagnostics", {}))
 
         first = bridge["bridge"]
         print(
@@ -109,12 +143,20 @@ def main(argv: list[str] | None = None) -> int:
             ),
         )
 
+        round2_start = len(recorder.snapshot())
         second = CommonGroundAgent(client).run_resolved(
             a,
             b,
             round_no=2,
             rejected_ids=[first["entity_id"]],
         )
+        round2_calls = recorder.snapshot()[round2_start:]
+        round2_contract = validate_round_contract(
+            round2_calls,
+            expected_discovery_take=25,
+            rejected_id=first["entity_id"],
+        )
+        print("round2_contract:", round2_contract)
         if second.get("bridge") and second["bridge"]["entity_id"] == first["entity_id"]:
             raise RuntimeError("filter.exclude.entities did not preserve the veto")
         print(
@@ -137,14 +179,14 @@ def main(argv: list[str] | None = None) -> int:
                 json.dumps(
                     {
                         "note": "Qloo smoke fixture: request query params + API response JSON only. X-Api-Key is never recorded.",
-                        "calls": recorder.calls,
+                        "calls": recorder.snapshot(),
                     },
                     ensure_ascii=False,
                     indent=2,
                 ),
                 encoding="utf-8",
             )
-            print(f"fixture: wrote {output.name} ({len(recorder.calls)} call(s))")
+            print(f"fixture: wrote {output.name} ({len(recorder.snapshot())} call(s))")
 
         print("PASS: live Qloo bridge flow completed without exposing the API key.")
         return 0
