@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import os
 import subprocess
 import sys
@@ -35,6 +36,17 @@ def fetch_json(url: str, payload: dict | None = None) -> dict:
     if not isinstance(result, dict):
         raise RuntimeError("unexpected JSON response")
     return result
+
+
+def fetch_text(url: str) -> str:
+    request = Request(url, headers={"User-Agent": "CommonGround-preflight/1"})
+    with urlopen(request, timeout=20) as response:
+        return response.read().decode("utf-8")
+
+
+def normalized_text_hash(value: str) -> str:
+    normalized = value.replace("\r\n", "\n").replace("\r", "\n")
+    return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
 
 
 def comparable_name(value: str) -> str:
@@ -198,11 +210,18 @@ def main() -> int:
 
     pages_url = "https://meowrona.github.io/CommonGround"
     try:
-        with urlopen(
-            Request(f"{pages_url}/", headers={"User-Agent": "CommonGround-preflight/1"}),
-            timeout=20,
-        ) as response:
-            results.append(check("public Pages frontend", response.status == 200, f"HTTP {response.status}"))
+        public_html = fetch_text(f"{pages_url}/")
+        results.append(check("public Pages frontend", bool(public_html), "HTTP 200 with HTML body"))
+        local_html = (ROOT / "docs" / "index.html").read_text(encoding="utf-8")
+        public_hash = normalized_text_hash(public_html)
+        local_hash = normalized_text_hash(local_html)
+        results.append(
+            check(
+                "Pages UI build sync",
+                public_hash == local_hash,
+                f"public {public_hash[:8]} / local {local_hash[:8]}",
+            )
+        )
         config = fetch_json(f"{pages_url}/runtime_config.json")
         configured_api = str(config.get("api_base", "")).rstrip("/")
         config_ok = bool(live_url) and configured_api == live_url
