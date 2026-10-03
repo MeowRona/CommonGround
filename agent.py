@@ -115,8 +115,14 @@ class CommonGroundAgent:
         rejected = list(dict.fromkeys(x for x in rejected if x))
         if len(rejected) > 10:
             raise ValueError("rejected_ids may contain at most 10 entities")
-        if any(len(entity_id) > 200 for entity_id in rejected):
-            raise ValueError("rejected entity ID is too long")
+        if any(
+            len(entity_id) > 200
+            or entity_id != entity_id.strip()
+            or "," in entity_id
+            or any(ord(ch) < 32 or ch == "\x7f" for ch in entity_id)
+            for entity_id in rejected
+        ):
+            raise ValueError("rejected entity ID is invalid")
 
         trace: list[AgentStep] = [
             AgentStep(

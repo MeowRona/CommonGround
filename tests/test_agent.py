@@ -84,6 +84,12 @@ class AgentTests(unittest.TestCase):
                 ["A"], ["B"], rejected_ids=[f"movie:{i}" for i in range(11)]
             )
 
+    def test_rejected_id_cannot_inject_comma_separated_ids(self):
+        with self.assertRaises(ValueError):
+            CommonGroundAgent(RecordingClient()).run(
+                ["A"], ["B"], rejected_ids=["movie:a,movie:b"]
+            )
+
     def test_fixture_evidence_is_candidate_specific(self):
         result = CommonGroundAgent(FixtureQlooClient()).run(
             ["Blade Runner", "Aphex Twin"], ["Amelie", "Daft Punk"]

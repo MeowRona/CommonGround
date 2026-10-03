@@ -72,6 +72,10 @@ class RankingTests(unittest.TestCase):
         self.assertIn("HTTP 401", str(ctx.exception))
         self.assertNotIn("super-secret-test-key", str(ctx.exception))
 
+    def test_transport_rejects_whitespace_only_key(self):
+        with self.assertRaises(RuntimeError):
+            QlooTransport(api_key="   ")
+
     def test_transport_retries_transient_http_error(self):
         transport = QlooTransport(api_key="secret")
 

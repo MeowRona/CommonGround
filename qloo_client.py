@@ -84,7 +84,8 @@ def build_insights_params(
 
 class QlooTransport:
     def __init__(self, api_key: str | None = None, base_url: str = HACKATHON_BASE_URL):
-        self.api_key = api_key or os.environ.get("QLOO_API_KEY", "")
+        raw_key = api_key if api_key is not None else os.environ.get("QLOO_API_KEY", "")
+        self.api_key = raw_key.strip()
         self.base_url = base_url.rstrip("/")
         if not self.api_key:
             raise RuntimeError("QLOO_API_KEY is not set")

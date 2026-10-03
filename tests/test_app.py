@@ -12,6 +12,7 @@ from app import FixtureQlooClient, allow_request, build_bridge, health_state, se
 class AppTests(unittest.TestCase):
     def setUp(self):
         self.previous = os.environ.get("COMMON_GROUND_MODE")
+        self.previous_key = os.environ.get("QLOO_API_KEY")
         os.environ["COMMON_GROUND_MODE"] = "fixture"
 
     def tearDown(self):
@@ -19,6 +20,10 @@ class AppTests(unittest.TestCase):
             os.environ.pop("COMMON_GROUND_MODE", None)
         else:
             os.environ["COMMON_GROUND_MODE"] = self.previous
+        if self.previous_key is None:
+            os.environ.pop("QLOO_API_KEY", None)
+        else:
+            os.environ["QLOO_API_KEY"] = self.previous_key
 
     def test_fixture_bridge_returns_one_primary_proposal(self):
         result = build_bridge({
@@ -81,6 +86,13 @@ class AppTests(unittest.TestCase):
                 "profile_b_entities": [{"entity_id": "y", "name": "Y", "entity_type": "urn:entity:movie"}],
             })
 
+    def test_selected_entity_id_cannot_inject_comma_separated_ids(self):
+        with self.assertRaises(ValueError):
+            build_bridge({
+                "profile_a_entities": [{"entity_id": "seed:a,seed:extra", "name": "A", "entity_type": "urn:entity:movie"}],
+                "profile_b_entities": [{"entity_id": "seed:b", "name": "B", "entity_type": "urn:entity:movie"}],
+            })
+
     def test_bridge_accepts_explicit_resolved_entities(self):
         result = build_bridge({
             "profile_a_entities": [
@@ -114,6 +126,13 @@ class AppTests(unittest.TestCase):
         status, body = health_state()
         self.assertEqual(status, HTTPStatus.SERVICE_UNAVAILABLE)
         self.assertFalse(body["ok"])
+
+    def test_live_health_treats_whitespace_key_as_missing(self):
+        os.environ["COMMON_GROUND_MODE"] = "live"
+        os.environ["QLOO_API_KEY"] = "   "
+        status, body = health_state()
+        self.assertEqual(status, HTTPStatus.SERVICE_UNAVAILABLE)
+        self.assertFalse(body["qloo_key_present"])
 
     def test_rate_limit_blocks_after_limit_and_recovers_after_window(self):
         key = "unit-test-client-rate-limit"

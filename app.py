@@ -105,6 +105,16 @@ def build_bridge(payload: dict) -> dict:
     )
 
 
+def _valid_entity_token(value: str) -> bool:
+    return (
+        bool(value)
+        and value == value.strip()
+        and len(value) <= 200
+        and "," not in value
+        and all(ord(ch) >= 32 and ch != "\x7f" for ch in value)
+    )
+
+
 def _parse_resolved_entities(value: object, field: str) -> list[ResolvedInterest]:
     if not isinstance(value, list):
         raise ValueError(f"{field} must be a list")
@@ -118,8 +128,8 @@ def _parse_resolved_entities(value: object, field: str) -> list[ResolvedInterest
         entity_type = raw.get("entity_type")
         if not all(isinstance(x, str) and x.strip() for x in (entity_id, name, entity_type)):
             raise ValueError(f"{field} entries require entity_id, name and entity_type")
-        if len(entity_id) > 200 or len(name) > 200:
-            raise ValueError(f"{field} contains an overlong entity ID or name")
+        if not _valid_entity_token(entity_id) or len(name) > 200:
+            raise ValueError(f"{field} contains an invalid entity ID or overlong name")
         if entity_type not in SUPPORTED_INPUT_TYPES:
             raise ValueError(f"unsupported input entity type: {entity_type}")
         if entity_id not in seen:
@@ -168,7 +178,7 @@ def search_interests(query: str) -> dict:
 
 def health_state() -> tuple[int, dict]:
     mode = os.environ.get("COMMON_GROUND_MODE", "fixture").strip().lower()
-    key_present = bool(os.environ.get("QLOO_API_KEY"))
+    key_present = bool(os.environ.get("QLOO_API_KEY", "").strip())
     ok = mode != "live" or key_present
     return (
         HTTPStatus.OK if ok else HTTPStatus.SERVICE_UNAVAILABLE,
