@@ -254,10 +254,12 @@ class RealQlooClient:
         )
         payload = self.transport.get_json("/v2/insights", params)
         rows: list[CandidateRef] = []
+        seen: set[str] = set()
         for row in _insight_rows(payload):
             entity_id = _entity_id(row)
             name = _entity_name(row)
-            if entity_id and name:
+            if entity_id and name and entity_id not in seen:
+                seen.add(entity_id)
                 rows.append(CandidateRef(entity_id, name))
         return rows
 
@@ -275,10 +277,12 @@ class RealQlooClient:
         )
         payload = self.transport.get_json("/v2/insights", params)
         rows: list[CandidateEvaluation] = []
+        seen: set[str] = set()
         for rank, row in enumerate(_insight_rows(payload), start=1):
             entity_id = _entity_id(row)
             name = _entity_name(row)
-            if entity_id and name and entity_id in candidate_ids:
+            if entity_id and name and entity_id in candidate_ids and entity_id not in seen:
+                seen.add(entity_id)
                 rows.append(
                     CandidateEvaluation(
                         entity_id=entity_id,

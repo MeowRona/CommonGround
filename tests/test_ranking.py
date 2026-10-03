@@ -92,6 +92,42 @@ class RankingTests(unittest.TestCase):
         self.assertEqual(result, {"ok": True})
         self.assertEqual(mocked.call_count, 2)
 
+    def test_transport_rejects_oversized_response(self):
+        transport = QlooTransport(api_key="secret")
+
+        class FakeResponse:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+            def read(self, size):
+                return b"x" * 8_000_001
+
+        with patch("qloo_client.urlopen", return_value=FakeResponse()):
+            with self.assertRaises(RuntimeError) as ctx:
+                transport.get_json("/search", {"query": "test"})
+        self.assertIn("8 MB", str(ctx.exception))
+
+    def test_transport_rejects_non_object_json(self):
+        transport = QlooTransport(api_key="secret")
+
+        class FakeResponse:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+            def read(self, size):
+                return b"[]"
+
+        with patch("qloo_client.urlopen", return_value=FakeResponse()):
+            with self.assertRaises(RuntimeError) as ctx:
+                transport.get_json("/search", {"query": "test"})
+        self.assertIn("top-level", str(ctx.exception))
+
     def test_real_client_resolves_exact_supported_entity(self):
         class FakeTransport:
             def get_json(self, path, params):
@@ -152,6 +188,27 @@ class RankingTests(unittest.TestCase):
         self.assertEqual([x.rank for x in rows], [1, 2])
         self.assertEqual(rows[0].evidence, ("Blade Runner",))
         self.assertEqual(rows[1].evidence, ())
+
+    def test_real_client_keeps_first_duplicate_insight_entity(self):
+        class FakeTransport:
+            def get_json(self, path, params):
+                return {
+                    "results": {
+                        "entities": [
+                            {"entity_id": "movie:arrival", "name": "Arrival"},
+                            {"entity_id": "movie:arrival", "name": "Arrival duplicate"},
+                            {"entity_id": "movie:her", "name": "Her"},
+                        ]
+                    }
+                }
+
+        client = RealQlooClient(FakeTransport())
+        interests = [type("I", (), {"entity_id": "seed:a", "name": "A", "entity_type": "urn:entity:movie"})()]
+        rows = client.evaluate_candidates(interests, ["movie:arrival", "movie:her"])
+        self.assertEqual([(x.entity_id, x.name, x.rank) for x in rows], [
+            ("movie:arrival", "Arrival", 1),
+            ("movie:her", "Her", 3),
+        ])
 
     def test_explainability_does_not_match_entity_id_as_substring(self):
         class FakeTransport:
