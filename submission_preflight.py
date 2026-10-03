@@ -5,9 +5,13 @@ import os
 import subprocess
 import sys
 import unicodedata
+from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
+
+
+ROOT = Path(__file__).resolve().parent
 
 
 def check(label: str, ok: bool, detail: str) -> bool:
@@ -59,6 +63,7 @@ def main() -> int:
         [sys.executable, "-m", "unittest", "discover", "-s", "tests", "-q"],
         capture_output=True,
         text=True,
+        cwd=ROOT,
     )
     results.append(
         check(
@@ -68,12 +73,49 @@ def main() -> int:
         )
     )
 
-    git = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
+    git = subprocess.run(
+        ["git", "status", "--porcelain", "--untracked-files=all"],
+        capture_output=True,
+        text=True,
+        cwd=ROOT,
+    )
+    if git.returncode != 0:
+        git_detail = git.stderr.strip() or "git status failed"
+    elif git.stdout.strip():
+        git_detail = "uncommitted/untracked changes remain"
+    else:
+        git_detail = "clean working tree"
     results.append(
         check(
             "git state",
             git.returncode == 0 and not git.stdout.strip(),
-            "clean working tree" if not git.stdout.strip() else "uncommitted changes remain",
+            git_detail,
+        )
+    )
+
+    local_head = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        capture_output=True,
+        text=True,
+        cwd=ROOT,
+    )
+    remote_head = subprocess.run(
+        ["git", "ls-remote", "origin", "refs/heads/main"],
+        capture_output=True,
+        text=True,
+        cwd=ROOT,
+        timeout=20,
+    )
+    local_sha = local_head.stdout.strip() if local_head.returncode == 0 else ""
+    remote_sha = remote_head.stdout.split()[0] if remote_head.returncode == 0 and remote_head.stdout.split() else ""
+    sync_ok = bool(local_sha and remote_sha and local_sha == remote_sha)
+    results.append(
+        check(
+            "GitHub main sync",
+            sync_ok,
+            f"HEAD {local_sha[:8]} == origin/main {remote_sha[:8]}"
+            if sync_ok
+            else (remote_head.stderr.strip() or f"local {local_sha[:8] or '?'} / remote {remote_sha[:8] or '?'}"),
         )
     )
 

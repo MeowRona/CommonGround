@@ -97,6 +97,8 @@ $env:LIVE_API_URL="https://your-service.onrender.com"
 python submission_preflight.py
 ```
 
+The preflight can be launched from any working directory. It also verifies that the local `HEAD` is the commit actually published as `origin/main`, so a clean-but-unpushed repo cannot accidentally pass the final gate.
+
 The final Devpost demo URL remains the fast GitHub Pages frontend. After Render is live, `configure_live_frontend.py` writes the Render API origin into `docs/runtime_config.json`; Pages then wakes and uses the live backend while keeping the key server-side.
 
 Build the static public preview:
