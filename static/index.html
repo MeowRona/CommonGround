@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="CommonGround finds recommendations that stay strong for both people instead of averaging one person away.">
+  <title>CommonGround — taste bridge agent</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg:#090b0d; --panel:#11151a; --panel2:#151a20; --line:#28313a;
+      --text:#f2f4f6; --muted:#949faa; --accent:#efad68; --accent2:#f6c995;
+      --good:#9ed2b0; --shadow:#0009;
+    }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body {
+      margin:0; min-height:100vh; color:var(--text);
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      background:
+        radial-gradient(900px 520px at 54% -120px, #27313c 0%, transparent 68%),
+        radial-gradient(700px 420px at 100% 40%, #31231833 0%, transparent 72%),
+        var(--bg);
+    }
+    button,input,select { font:inherit; }
+    main { width:min(1160px,calc(100% - 32px)); margin:0 auto; padding:46px 0 74px; }
+    .topbar { display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:62px; }
+    .brand { font-weight:800; letter-spacing:-.03em; font-size:20px; }
+    .mode { display:flex; align-items:center; gap:8px; color:var(--muted); font-size:12px; }
+    .dot { width:8px; height:8px; border-radius:50%; background:var(--accent); box-shadow:0 0 18px #efad6877; }
+    .hero { display:grid; grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr); gap:52px; align-items:end; }
+    .eyebrow { color:var(--accent); letter-spacing:.14em; font-size:11px; font-weight:800; text-transform:uppercase; }
+    h1 { font-size:clamp(48px,7vw,92px); line-height:.91; letter-spacing:-.065em; margin:12px 0 20px; max-width:760px; }
+    .lede { color:#b7c0c8; font-size:18px; line-height:1.58; max-width:720px; margin:0; }
+    .principle {
+      border:1px solid var(--line); border-radius:18px; padding:20px 22px;
+      background:linear-gradient(145deg,#151a20dd,#101418cc); box-shadow:0 24px 70px var(--shadow);
+    }
+    .principle small { display:block; color:var(--muted); text-transform:uppercase; letter-spacing:.1em; margin-bottom:12px; }
+    .formula { font-size:28px; letter-spacing:-.035em; font-weight:750; }
+    .formula strong { color:var(--accent2); }
+    .principle p { color:var(--muted); line-height:1.5; font-size:13px; margin:12px 0 0; }
+    .agentline { display:flex; gap:8px; flex-wrap:wrap; margin-top:26px; }
+    .stepchip { color:#aab4bd; border:1px solid #26313a; background:#0d1115; border-radius:999px; padding:8px 11px; font-size:12px; }
+    .stepchip b { color:var(--text); font-weight:650; }
+    .workspace { margin-top:48px; border:1px solid var(--line); border-radius:24px; overflow:hidden; background:#0e1216e8; box-shadow:0 32px 100px #0008; }
+    .statusbar { display:flex; justify-content:space-between; gap:18px; align-items:center; padding:12px 18px; border-bottom:1px solid var(--line); background:#efad680b; }
+    .statusbar span { color:#d7b38d; font-size:12px; }
+    .statusbar code { color:#8f99a3; font-family:ui-monospace,SFMono-Regular,Consolas,monospace; font-size:11px; }
+    .form { display:grid; grid-template-columns:1fr 1fr 230px; gap:18px; padding:24px; }
+    label { display:block; color:#9ca6b0; font-size:11px; font-weight:750; letter-spacing:.09em; text-transform:uppercase; margin:0 0 8px; }
+    .hint { color:#68737e; font-size:11px; margin-top:7px; line-height:1.4; }
+    input,select {
+      width:100%; border:1px solid #2a333c; border-radius:12px; background:#090d11;
+      color:var(--text); padding:14px 14px; outline:none; transition:.18s border-color,.18s box-shadow;
+    }
+    input:focus,select:focus { border-color:#9f7950; box-shadow:0 0 0 3px #efad6816; }
+    .go {
+      margin-top:19px; width:100%; border:0; border-radius:12px; padding:14px 16px;
+      color:#17110b; background:linear-gradient(180deg,#f8d3a8,#e9a45c); font-weight:850; cursor:pointer;
+      transition:.15s transform,.15s filter;
+    }
+    .go:hover { filter:brightness(1.05); transform:translateY(-1px); }
+    .go:disabled { opacity:.55; cursor:wait; transform:none; }
+    .output { border-top:1px solid var(--line); display:none; }
+    .summary { display:grid; grid-template-columns:1.1fr .9fr; gap:0; border-bottom:1px solid var(--line); }
+    .summary-main { padding:24px; }
+    .summary-side { padding:24px; border-left:1px solid var(--line); background:#12171c; }
+    .micro { color:var(--muted); text-transform:uppercase; letter-spacing:.1em; font-size:10px; font-weight:800; }
+    .band { font-size:30px; letter-spacing:-.035em; font-weight:780; margin:5px 0 4px; text-transform:capitalize; }
+    .method { color:var(--muted); font-size:12px; line-height:1.5; }
+    .trace { margin-top:12px; display:grid; gap:8px; }
+    .trace-row { display:grid; grid-template-columns:20px 1fr; gap:9px; align-items:start; color:#aeb7bf; font-size:12px; line-height:1.45; }
+    .trace-index { width:20px; height:20px; display:grid; place-items:center; border-radius:50%; background:#202830; color:#d8dfe5; font-size:10px; }
+    .trace-row b { color:#eef2f5; font-weight:700; }
+    .results { padding:6px 24px 26px; }
+    .card { display:grid; grid-template-columns:minmax(190px,.75fr) 1.25fr; gap:30px; padding:22px 0; border-bottom:1px solid #222a31; }
+    .card:last-child { border-bottom:0; }
+    .rank { color:#7e8994; font-size:11px; text-transform:uppercase; letter-spacing:.08em; }
+    .name { font-size:27px; line-height:1.05; letter-spacing:-.035em; margin:6px 0 10px; }
+    .floor { display:inline-flex; align-items:center; gap:7px; color:#c9d0d6; font-size:12px; }
+    .floor i { display:block; width:7px; height:7px; border-radius:50%; background:var(--good); }
+    .bars { display:grid; gap:8px; }
+    .barrow { display:grid; grid-template-columns:24px 1fr 48px; gap:10px; align-items:center; color:#8e99a3; font-size:12px; }
+    .track { height:8px; border-radius:999px; overflow:hidden; background:#242c33; }
+    .fill { height:100%; border-radius:999px; background:linear-gradient(90deg,#727e89,var(--accent)); }
+    .explain { margin-top:11px; color:#c2cad1; font-size:13px; line-height:1.45; }
+    .signals { display:flex; flex-wrap:wrap; gap:6px; margin-top:9px; }
+    .signal-label { color:#68737e; font-size:10px; align-self:center; margin-right:2px; }
+    .signal { border:1px solid #2b343c; border-radius:999px; padding:5px 8px; font-size:10px; color:#89949e; background:#0b0f13; }
+    .empty,.error { padding:32px 24px; color:var(--muted); }
+    .error { color:#efb0a6; }
+    .footnote { color:#606b75; font-size:11px; line-height:1.5; margin-top:18px; }
+    @media (max-width:900px) {
+      .hero,.summary { grid-template-columns:1fr; }
+      .form { grid-template-columns:1fr; }
+      .go { margin-top:0; }
+      .summary-side { border-left:0; border-top:1px solid var(--line); }
+      .card { grid-template-columns:1fr; gap:14px; }
+    }
+    @media (max-width:560px) {
+      main { width:min(100% - 20px,1160px); padding-top:24px; }
+      .topbar { margin-bottom:40px; }
+      .mode code { display:none; }
+      .form,.summary-main,.summary-side,.results { padding-left:16px; padding-right:16px; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <div class="topbar">
+    <div class="brand">CommonGround</div>
+    <div class="mode"><span class="dot"></span><span id="modeLabel">Demo mode</span><code>QLOO REQUEST CONTRACT READY</code></div>
+  </div>
+
+  <section class="hero">
+    <div>
+      <div class="eyebrow">A fairness-first taste decision agent</div>
+      <h1>Find the choice neither person has to fake liking.</h1>
+      <p class="lede">Two people can have different taste without needing an average-person recommendation. CommonGround grounds each profile separately, checks the overlap, widens the search when the bridge is weak, and then ranks choices by how well the <em>less enthusiastic</em> person is still served.</p>
+      <div class="agentline" aria-label="Agent workflow">
+        <span class="stepchip"><b>1</b> interpret tastes</span>
+        <span class="stepchip"><b>2</b> ground independently</span>
+        <span class="stepchip"><b>3</b> stress-test overlap</span>
+        <span class="stepchip"><b>4</b> adapt if weak</span>
+        <span class="stepchip"><b>5</b> choose bridge</span>
+      </div>
+    </div>
+    <aside class="principle">
+      <small>Decision rule</small>
+      <div class="formula">Protect the <strong>weaker affinity</strong>.</div>
+      <p>A 95% / 35% option should not beat an 80% / 78% option just because its average looks acceptable. CommonGround makes that trade-off visible.</p>
+    </aside>
+  </section>
+
+  <section class="workspace">
+    <div class="statusbar">
+      <span id="dataWarning">Synthetic deterministic affinities — not live Qloo results.</span>
+      <code id="statusCode">SAFE DEMO</code>
+    </div>
+    <div class="form">
+      <div>
+        <label for="a">Person A taste signals</label>
+        <input id="a" maxlength="420" autocomplete="off" value="Blade Runner, Aphex Twin" placeholder="Blade Runner, Aphex Twin">
+        <div class="hint">Comma-separated. Up to 8 signals.</div>
+      </div>
+      <div>
+        <label for="b">Person B taste signals</label>
+        <input id="b" maxlength="420" autocomplete="off" value="Amelie, Daft Punk" placeholder="Amelie, Daft Punk">
+        <div class="hint">Keep them real; the profiles are evaluated separately.</div>
+      </div>
+      <div>
+        <label for="domain">Find common ground in</label>
+        <select id="domain">
+          <option value="movie">Movies</option>
+          <option value="restaurant">Restaurants</option>
+          <option value="music">Music</option>
+        </select>
+        <button id="go" class="go">Find common ground</button>
+      </div>
+    </div>
+    <div id="output" class="output" aria-live="polite">
+      <div class="summary">
+        <div class="summary-main">
+          <div class="micro">Agent decision</div>
+          <div id="bridgeBand" class="band">—</div>
+          <div id="method" class="method"></div>
+        </div>
+        <div class="summary-side">
+          <div class="micro">What the agent actually did</div>
+          <div id="trace" class="trace"></div>
+        </div>
+      </div>
+      <div id="results" class="results"></div>
+    </div>
+    <div id="initial" class="empty">Run a comparison to inspect the bridge, not just a combined score.</div>
+  </section>
+  <p class="footnote">Current public-facing build is intentionally in demo-data mode until the entrant's hackathon API key is available and the live Qloo response mapping passes its smoke test. The UI never asks for or stores an API key.</p>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const split = value => value.split(',').map(x => x.trim()).filter(Boolean);
+const pct = x => Math.round(Number(x || 0) * 100);
+const esc = value => String(value ?? '').replace(/[&<>'"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
+const STATIC_DEMO = window.location.hostname.endsWith('github.io') || new URLSearchParams(window.location.search).get('static') === '1';
+
+const STATIC_CANDIDATES = {
+  movie:['Arrival','Her','The Grand Budapest Hotel','Blade Runner 2049','Everything Everywhere All at Once','Whiplash','Ex Machina','The Social Network'],
+  restaurant:['Modern Japanese','Levantine small plates','Korean barbecue','Neapolitan pizza','Modern Polish','Vietnamese street food','Mediterranean seafood','Vegetarian tasting menu'],
+  music:['James Blake','Fred again..','FKA twigs','Tame Impala','Kaytranada','Caroline Polachek','The xx','Bonobo']
+};
+
+function tinyHash(text) {
+  let h = 2166136261 >>> 0;
+  for (let i=0;i<text.length;i++) { h ^= text.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+  return h / 4294967295;
+}
+
+function staticAffinity(seeds, domain, name) {
+  const values = seeds.map(s => tinyHash(`${s.toLowerCase()}|${domain}|${name}`));
+  const mean = values.reduce((a,b)=>a+b,0) / Math.max(1, values.length);
+  return Math.min(.99, .42 + .56 * mean);
+}
+
+function staticDemoRecommendation(a, b, domain) {
+  const candidates = STATIC_CANDIDATES[domain] || [];
+  const rows = candidates.map(name => {
+    const aa = staticAffinity(a, domain, name);
+    const bb = staticAffinity(b, domain, name);
+    const floor = Math.min(aa, bb);
+    const mean = (aa + bb) / 2;
+    const balance = 1 - Math.abs(aa - bb);
+    return {
+      name, affinity_a:aa, affinity_b:bb, floor, mean, balance,
+      score:.72*floor + .20*mean + .08*balance,
+      explanation:`Both profiles stay above ${pct(floor)}% affinity; A is ${pct(aa)}%, B is ${pct(bb)}%.`,
+      evidence_a:a.slice(0,3), evidence_b:b.slice(0,3)
+    };
+  }).sort((x,y)=>y.score-x.score).slice(0,3);
+  const topFloor = rows.length ? rows[0].floor : 0;
+  const bridge = topFloor >= .75 ? 'strong bridge' : topFloor >= .60 ? 'workable bridge' : rows.length ? 'exploratory bridge' : 'no shared candidate';
+  return {
+    mode:'demo', method:'72% weaker-person affinity + 20% mean + 8% balance', results:rows,
+    agent:{bridge_band:bridge, workflow:'observe -> retrieve -> compare -> adapt if weak -> decide', trace:[
+      {name:'Interpret profiles',detail:`Kept ${a.length} unique signal(s) for A and ${b.length} for B.`},
+      {name:'Ground each profile independently',detail:`Evaluated ${candidates.length} demo candidates for each profile.`},
+      {name:'Stress-test the overlap',detail:`Found ${candidates.length} shared demo candidate(s); best weaker-person affinity is ${pct(topFloor)}%.`},
+      {name:'Choose common ground',detail:`Ranked ${rows.length} result(s) fairness-first; outcome is ${bridge}.`}
+    ]}
+  };
+}
+
+function traceMarkup(trace) {
+  return (trace || []).map((step, i) => `<div class="trace-row"><span class="trace-index">${i+1}</span><span><b>${esc(step.name)}</b><br>${esc(step.detail)}</span></div>`).join('');
+}
+
+function signalMarkup(values, label) {
+  if (!values || !values.length) return '';
+  return `<div class="signals" aria-label="${esc(label)}"><span class="signal-label">${esc(label)}</span>${values.slice(0,3).map(v => `<span class="signal">${esc(v)}</span>`).join('')}</div>`;
+}
+
+function cardMarkup(r, i) {
+  return `<article class="card">
+    <div>
+      <div class="rank">#${i+1} · fairness score ${pct(r.score)}</div>
+      <div class="name">${esc(r.name)}</div>
+      <div class="floor"><i></i> weaker-person affinity ${pct(r.floor)}%</div>
+    </div>
+    <div>
+      <div class="bars">
+        <div class="barrow"><span>A</span><div class="track"><div class="fill" style="width:${pct(r.affinity_a)}%"></div></div><strong>${pct(r.affinity_a)}%</strong></div>
+        <div class="barrow"><span>B</span><div class="track"><div class="fill" style="width:${pct(r.affinity_b)}%"></div></div><strong>${pct(r.affinity_b)}%</strong></div>
+      </div>
+      <div class="explain">${esc(r.explanation)}</div>
+      ${signalMarkup(r.evidence_a, 'A influenced by')}
+      ${signalMarkup(r.evidence_b, 'B influenced by')}
+    </div>
+  </article>`;
+}
+
+async function readHealth() {
+  if (STATIC_DEMO) {
+    $('modeLabel').textContent = 'Demo mode';
+    $('dataWarning').textContent = 'Synthetic deterministic affinities — not live Qloo results.';
+    $('statusCode').textContent = 'SAFE DEMO';
+    return;
+  }
+  try {
+    const h = await fetch('/health', {cache:'no-store'}).then(r => r.json());
+    const live = h.mode === 'live';
+    $('modeLabel').textContent = live ? 'Live Qloo mode' : 'Demo mode';
+    $('dataWarning').textContent = live ? 'Live Qloo adapter selected.' : 'Synthetic deterministic affinities — not live Qloo results.';
+    $('statusCode').textContent = live ? (h.qloo_key_present ? 'LIVE KEY PRESENT' : 'LIVE KEY MISSING') : 'SAFE DEMO';
+  } catch (_) {}
+}
+
+$('go').addEventListener('click', async () => {
+  const button = $('go');
+  const initial = $('initial');
+  const output = $('output');
+  const a = split($('a').value);
+  const b = split($('b').value);
+  if (!a.length || !b.length) {
+    initial.className = 'error';
+    initial.textContent = 'Both people need at least one taste signal.';
+    return;
+  }
+  if (a.length > 8 || b.length > 8) {
+    initial.className = 'error';
+    initial.textContent = 'Use at most 8 taste signals per person.';
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent = 'Finding bridge…';
+  initial.className = 'empty';
+  initial.textContent = 'The agent is grounding both profiles independently…';
+  output.style.display = 'none';
+  try {
+    let data;
+    if (STATIC_DEMO) {
+      data = staticDemoRecommendation(a, b, $('domain').value);
+      await new Promise(resolve => setTimeout(resolve, 120));
+    } else {
+      const response = await fetch('/api/recommend', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({profile_a:a, profile_b:b, target_domain:$('domain').value})
+      });
+      data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Request failed');
+    }
+
+    $('bridgeBand').textContent = data.agent.bridge_band;
+    $('method').textContent = `${data.method}. Workflow: ${data.agent.workflow}.`;
+    $('trace').innerHTML = traceMarkup(data.agent.trace);
+    $('results').innerHTML = data.results.length ? data.results.map(cardMarkup).join('') : '<div class="empty">No shared candidate in the current retrieval window.</div>';
+    initial.style.display = 'none';
+    output.style.display = 'block';
+    if (new URLSearchParams(window.location.search).get('focus') === 'results') {
+      window.setTimeout(() => output.scrollIntoView({block:'start'}), 80);
+    }
+  } catch (error) {
+    output.style.display = 'none';
+    initial.style.display = 'block';
+    initial.className = 'error';
+    initial.textContent = error.message;
+  } finally {
+    button.disabled = false;
+    button.textContent = 'Find common ground';
+  }
+});
+
+readHealth();
+if (new URLSearchParams(window.location.search).get('autorun') === '1') {
+  window.setTimeout(() => $('go').click(), 120);
+}
+</script>
+</body>
+</html>
