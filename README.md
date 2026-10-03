@@ -48,8 +48,6 @@ The remaining live gate is a real hackathon API key and one schema smoke test ag
 
 The repository also contains a prepared `render.yaml` for a free live backend once that smoke test passes.
 
-GitHub Actions rebuilds the fixture preview and runs the full test suite on every push/PR, so the public Pages artifact cannot silently drift away from the Python decision policy.
-
 ## Run locally
 
 Python 3.11+; no third-party Python packages are required.
