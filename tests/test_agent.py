@@ -45,14 +45,14 @@ class AgentTests(unittest.TestCase):
     def test_candidate_seen_only_in_discovery_a_is_still_evaluated_for_b(self):
         client = RecordingClient()
         CommonGroundAgent(client).run(["A"], ["B"])
-        eval_b_ids = set(client.evaluate_calls[1][1])
+        eval_b_ids = set(next(ids for who, ids in client.evaluate_calls if who == "B"))
         self.assertIn("only-a", eval_b_ids)
 
     def test_second_round_widens_and_preserves_veto(self):
         client = RecordingClient()
         result = CommonGroundAgent(client).run(["A"], ["B"], round_no=2, rejected_ids=["shared"])
-        self.assertEqual(client.discover_calls[0][1], 40)
-        self.assertEqual(client.discover_calls[0][2], ("shared",))
+        self.assertTrue(all(take == 40 for _, take, _ in client.discover_calls))
+        self.assertTrue(all(excluded == ("shared",) for _, _, excluded in client.discover_calls))
         self.assertNotEqual(result.get("bridge", {}).get("entity_id"), "shared")
 
     def test_round_limit_is_hard(self):

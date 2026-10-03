@@ -42,10 +42,13 @@ The live client already implements:
 - candidate exclusions via `filter.exclude.entities`;
 - same-pool evaluation via `filter.results.entities`;
 - defensive parsing and fail-closed behavior when response structure is unexpected.
+- parallel A/B discovery and same-pool evaluation to avoid unnecessary serial API latency.
 
 The remaining live gate is a real hackathon API key and one schema smoke test against the competition environment.
 
 The repository also contains a prepared `render.yaml` for a free live backend once that smoke test passes.
+
+GitHub Actions rebuilds the fixture preview and runs the full test suite on every push/PR, so the public Pages artifact cannot silently drift away from the Python decision policy.
 
 ## Run locally
 

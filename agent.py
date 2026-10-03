@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from typing import Protocol
 
@@ -121,12 +122,21 @@ class CommonGroundAgent:
         ]
 
         take = 20 if round_no == 1 else 40
-        candidates_a = self.client.discover_candidates(
-            a_interests, take=take, exclude_ids=rejected
-        )
-        candidates_b = self.client.discover_candidates(
-            b_interests, take=take, exclude_ids=rejected
-        )
+        with ThreadPoolExecutor(max_workers=2) as pool_exec:
+            future_a = pool_exec.submit(
+                self.client.discover_candidates,
+                a_interests,
+                take=take,
+                exclude_ids=rejected,
+            )
+            future_b = pool_exec.submit(
+                self.client.discover_candidates,
+                b_interests,
+                take=take,
+                exclude_ids=rejected,
+            )
+            candidates_a = future_a.result()
+            candidates_b = future_b.result()
         pool = _stable_union(candidates_a, candidates_b)
         trace.append(
             AgentStep(
@@ -137,8 +147,15 @@ class CommonGroundAgent:
         )
 
         candidate_ids = [row.entity_id for row in pool]
-        eval_a = self.client.evaluate_candidates(a_interests, candidate_ids)
-        eval_b = self.client.evaluate_candidates(b_interests, candidate_ids)
+        with ThreadPoolExecutor(max_workers=2) as pool_exec:
+            future_a = pool_exec.submit(
+                self.client.evaluate_candidates, a_interests, candidate_ids
+            )
+            future_b = pool_exec.submit(
+                self.client.evaluate_candidates, b_interests, candidate_ids
+            )
+            eval_a = future_a.result()
+            eval_b = future_b.result()
         trace.append(
             AgentStep(
                 "Evaluate the same movies for both people",

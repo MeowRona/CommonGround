@@ -36,5 +36,4 @@ Do not final-submit until the live Qloo key smoke test and live backend deployme
 
 ## Live deployment path
 
-The repo includes ender.yaml for a Render Free Docker web service. After the Qloo key passes live_smoke.py, connect the repo to Render, store QLOO_API_KEY only as a secret environment variable, deploy, then run submission_preflight.py with LIVE_DEMO_URL set to the HTTPS service URL.
-
+The repo includes render.yaml for a Render Free Docker web service. After the Qloo key passes live_smoke.py, connect the repo to Render, store QLOO_API_KEY only as a secret environment variable, deploy, then run submission_preflight.py with LIVE_DEMO_URL set to the HTTPS service URL.
