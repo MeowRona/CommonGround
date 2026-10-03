@@ -51,9 +51,28 @@ class AgentTests(unittest.TestCase):
     def test_second_round_widens_and_preserves_veto(self):
         client = RecordingClient()
         result = CommonGroundAgent(client).run(["A"], ["B"], round_no=2, rejected_ids=["shared"])
-        self.assertTrue(all(take == 40 for _, take, _ in client.discover_calls))
+        self.assertTrue(all(take == 25 for _, take, _ in client.discover_calls))
         self.assertTrue(all(excluded == ("shared",) for _, _, excluded in client.discover_calls))
         self.assertNotEqual(result.get("bridge", {}).get("entity_id"), "shared")
+
+    def test_second_round_candidate_union_never_exceeds_same_pool_limit(self):
+        class WideClient:
+            mode = "test"
+
+            def resolve_interests(self, names):
+                return [ResolvedInterest(f"seed:{names[0]}", names[0], "urn:entity:movie")]
+
+            def discover_candidates(self, interests, *, take, exclude_ids):
+                prefix = interests[0].name
+                return [CandidateRef(f"{prefix}:{i}", f"{prefix} {i}") for i in range(take)]
+
+            def evaluate_candidates(self, interests, candidate_ids):
+                if len(candidate_ids) > 50:
+                    raise AssertionError("same-pool candidate list exceeded Qloo take limit")
+                return [CandidateEvaluation(entity_id, entity_id, rank) for rank, entity_id in enumerate(candidate_ids, 1)]
+
+        result = CommonGroundAgent(WideClient()).run(["A"], ["B"], round_no=2)
+        self.assertEqual(result["status"], "proposal")
 
     def test_round_limit_is_hard(self):
         with self.assertRaises(ValueError):

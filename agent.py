@@ -121,7 +121,9 @@ class CommonGroundAgent:
             )
         ]
 
-        take = 20 if round_no == 1 else 40
+        # Keep the union at <= 50 so both people can be evaluated against the
+        # entire same candidate pool in a single documented Insights request.
+        take = 20 if round_no == 1 else 25
         with ThreadPoolExecutor(max_workers=2) as pool_exec:
             future_a = pool_exec.submit(
                 self.client.discover_candidates,

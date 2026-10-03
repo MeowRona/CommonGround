@@ -42,7 +42,7 @@ def main() -> int:
         if not eval_a or not eval_b:
             raise RuntimeError("Same-pool evaluation returned no rows for one profile")
 
-        bridge = CommonGroundAgent(client).run(PROFILE_A, PROFILE_B)
+        bridge = CommonGroundAgent(client).run_resolved(a, b)
         if not bridge.get("bridge"):
             raise RuntimeError("No bridge survived complete evaluation")
 
@@ -61,9 +61,9 @@ def main() -> int:
             ),
         )
 
-        second = CommonGroundAgent(client).run(
-            PROFILE_A,
-            PROFILE_B,
+        second = CommonGroundAgent(client).run_resolved(
+            a,
+            b,
             round_no=2,
             rejected_ids=[first["entity_id"]],
         )

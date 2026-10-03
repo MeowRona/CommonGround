@@ -4,6 +4,8 @@
 
 **Public source:** https://github.com/MeowRona/CommonGround
 
+**Architecture:** [ARCHITECTURE.md](ARCHITECTURE.md)
+
 CommonGround helps two people with different tastes find **one movie that each person reaches for a different reason**.
 
 The core interaction is intentionally narrow:
@@ -16,7 +18,7 @@ The core interaction is intentionally narrow:
 6. CommonGround minimizes the worse rank first, then the sum of both ranks;
 7. it proposes one bridge movie;
 8. both people react: **Want to try / Already know / Not for me**;
-9. a veto or already-known result is excluded and triggers one wider second round;
+9. a veto or already-known result is excluded and triggers one wider second round (25 candidates per side, keeping the union within Qloo's 50-result request window);
 10. after two rounds, the agent stops rather than forcing a compromise.
 
 ## Why Qloo matters

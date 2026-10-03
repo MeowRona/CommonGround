@@ -37,7 +37,7 @@ Feedback:
 - either chooses **Already know** or **Not for me** → exclude that movie.
 
 Round 2:
-- widen retrieval from 20 to 40 candidates per side;
+- widen retrieval from 20 to 25 candidates per side, keeping the union at no more than 50 so both people can be evaluated on the full identical pool in one Insights request;
 - keep the exclusion;
 - re-evaluate the new shared pool;
 - propose once more.

@@ -28,7 +28,7 @@ Each person responds:
 - **Already know it**
 - **Not for me**
 
-Any veto or already-known result is excluded. The agent widens the search once and tries again. After two rounds it stops rather than forcing a compromise.
+Any veto or already-known result is excluded. The agent widens the search once (from 20 to 25 candidates per side, so the union remains at most 50 and can be evaluated as one identical pool) and tries again. After two rounds it stops rather than forcing a compromise.
 
 ## How Qloo is used
 
@@ -74,4 +74,3 @@ The current public Pages build is a clearly labelled fixture preview generated f
 - deploy the live Python backend for free;
 - update screenshots and public demo URL;
 - re-check rules and final statements against the shipped build.
-

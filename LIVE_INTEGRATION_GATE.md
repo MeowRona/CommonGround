@@ -1,5 +1,11 @@
 # Live Qloo integration gate
 
+Official references used for the request contract:
+
+- https://docs.qloo.com/reference/qloo-llm-hackathon-developer-guide
+- https://docs.qloo.com/reference/get-search
+- https://docs.qloo.com/reference/insights-api-deep-dive
+
 ## Official request contract verified on 2026-10-03
 
 - Hackathon base URL: `https://hackathon.api.qloo.com`
@@ -38,4 +44,3 @@ Do not claim a live Qloo demo if:
 - result identity/order cannot be parsed reliably;
 - explainability fields differ materially from assumptions;
 - no genuinely free backend can keep the secret server-side.
-
