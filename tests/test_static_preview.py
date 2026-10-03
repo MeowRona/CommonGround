@@ -82,6 +82,13 @@ class StaticPreviewTests(unittest.TestCase):
         self.assertIn("activeProfiles=null", html)
         self.assertIn("setInteractiveEnabled(true)", html)
 
+    def test_live_bridge_request_has_visible_loading_state(self):
+        html = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+        self.assertIn("Finding bridge…", html)
+        self.assertIn("Qloo is discovering candidates and evaluating the same movie pool", html)
+        self.assertIn('aria-live="polite"', html)
+        self.assertIn("aria-busy", html)
+
     def test_fixture_mode_uses_scenarios_instead_of_fake_free_text_search(self):
         html = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
         self.assertIn("async function showFixtureSetup()", html)
