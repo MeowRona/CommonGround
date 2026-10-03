@@ -137,6 +137,13 @@ class StaticPreviewTests(unittest.TestCase):
         self.assertIn("Prefer candidates observed for both profiles", html)
         self.assertIn("exclude this cultural bridge", html)
 
+    def test_title_suggestion_menu_is_scrollable(self):
+        html = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+        self.assertIn("max-height:min(360px,52vh)", html)
+        self.assertIn("overflow-y:auto", html)
+        self.assertIn("overscroll-behavior:contain", html)
+        self.assertIn("max-height:280px", html)
+
 
 if __name__ == "__main__":
     unittest.main()
