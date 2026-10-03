@@ -116,19 +116,26 @@ class StaticPreviewTests(unittest.TestCase):
         self.assertIn("open-data test — NOT Qloo", html)
         self.assertIn("Temporary mode: Wikidata + Wikipedia", html)
         self.assertIn("OPEN-DATA TEST MODE", html)
-        self.assertIn("Wikipedia text similarity supplies temporary ranks", html)
+        self.assertIn("Wikipedia text similarity supplies temporary cultural ranks", html)
 
     def test_open_data_mode_uses_real_wikimedia_endpoints(self):
         html = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
         self.assertIn("generator:'search'", html)
         self.assertIn("morelike:", html)
-        self.assertIn("query.wikidata.org/sparql", html)
-        self.assertIn("wdt:P31/wdt:P279* wd:Q11424", html)
+        self.assertIn("async function openCultureCandidates", html)
+        self.assertNotIn("async function openFilmCandidates", html)
 
     def test_open_data_search_prioritizes_exact_normalized_titles(self):
         html = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
         self.assertIn("function comparableOpenName", html)
         self.assertIn("comparableOpenName(a.name)!==target", html)
+
+    def test_open_data_bridge_can_be_any_cultural_object(self):
+        html = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+        self.assertIn("One bridge.<br>Two different reasons.", html)
+        self.assertIn("Temporary Wikimedia cultural bridge — NOT QLOO", html)
+        self.assertIn("Prefer candidates observed for both profiles", html)
+        self.assertIn("exclude this cultural bridge", html)
 
 
 if __name__ == "__main__":

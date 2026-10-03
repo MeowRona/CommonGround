@@ -43,7 +43,7 @@ The application layer does **not** claim to predict whether a person will like s
 
 ## Public preview vs live mode
 
-While the Qloo hackathon key is pending, the public GitHub Pages build runs an explicitly labelled **OPEN-DATA TEST MODE — NOT QLOO**. It searches real entities through Wikipedia/Wikidata, uses Wikipedia `morelike:` related-page search to generate temporary cultural candidates, and uses Wikidata to keep only film entities. This lets the real UI/search/feedback flow be exercised without fabricating Qloo output.
+While the Qloo hackathon key is pending, the public GitHub Pages build runs an explicitly labelled **OPEN-DATA TEST MODE — NOT QLOO**. It searches real entities through Wikipedia/Wikidata and uses Wikipedia `morelike:` related-page search to generate temporary cultural candidates. Unlike the final Qloo path, the temporary bridge may be any mapped cultural object — artist, label, album, genre, film, person, etc. — which makes it useful for testing arbitrary profiles without fabricating Qloo output.
 
 The open-data ranking is intentionally treated as a weaker temporary heuristic. It is **not** described as Qloo affinity or as the final fairness signal.
 

@@ -82,7 +82,7 @@ GitHub Pages cannot safely hold the Qloo API key or run the Python server. While
 
 - Wikipedia full-text search recognizes arbitrary public entities and maps them to Wikidata IDs;
 - Wikipedia CirrusSearch `morelike:` provides temporary related-page candidate lists;
-- Wikidata SPARQL filters those related pages down to actual films;
+- related pages are mapped back to stable Wikidata IDs and may be any cultural object in this temporary mode;
 - the UI labels the resulting ranks as temporary Wikimedia similarity and explicitly says **NOT QLOO**.
 
 This mode exists to exercise search, ambiguous-entity selection, candidate presentation, veto, and second-round UX without inventing Qloo responses. It is not a substitute for the final Qloo integration.
