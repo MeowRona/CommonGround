@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import os
 import unittest
+from http import HTTPStatus
 
-from app import build_bridge, search_interests
+from app import build_bridge, health_state, search_interests
 
 
 class AppTests(unittest.TestCase):
@@ -76,6 +77,20 @@ class AppTests(unittest.TestCase):
                 "profile_a_entities": [{"entity_id": "x", "name": "X", "entity_type": "urn:entity:place"}],
                 "profile_b_entities": [{"entity_id": "y", "name": "Y", "entity_type": "urn:entity:movie"}],
             })
+
+    def test_fixture_health_is_ready_without_key(self):
+        os.environ["COMMON_GROUND_MODE"] = "fixture"
+        os.environ.pop("QLOO_API_KEY", None)
+        status, body = health_state()
+        self.assertEqual(status, HTTPStatus.OK)
+        self.assertTrue(body["ok"])
+
+    def test_live_health_fails_closed_without_key(self):
+        os.environ["COMMON_GROUND_MODE"] = "live"
+        os.environ.pop("QLOO_API_KEY", None)
+        status, body = health_state()
+        self.assertEqual(status, HTTPStatus.SERVICE_UNAVAILABLE)
+        self.assertFalse(body["ok"])
 
 
 if __name__ == "__main__":

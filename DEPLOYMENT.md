@@ -55,4 +55,4 @@ If no genuinely free suitable host is available, stop instead of buying a servic
 5. Repository contains no key, `.env`, personal data, temporary docs snapshots, or generated cache files.
 6. Public README contains the final demo URL and exact run instructions.
 
-`submission_preflight.py` automates the test suite, clean-Git check, key presence, public repository reachability, and live `/health` verification. It deliberately does not submit anything to Devpost.
+`submission_preflight.py` automates the test suite, clean-Git check, public repository reachability, live `/health`, real entity search, a live bridge request, and a live veto round. It deliberately does not submit anything to Devpost.

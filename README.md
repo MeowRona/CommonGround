@@ -76,10 +76,10 @@ Once the hackathon key is available, run the full read-only live contract smoke 
 
 ```powershell
 $env:QLOO_API_KEY="..."
-python live_smoke.py
+python live_smoke.py --write-fixture
 ```
 
-The script never prints the key. It verifies entity resolution, independent discovery, same-pool evaluation, the first bridge, and a second-round exclusion.
+The script never prints or records the key. It verifies entity resolution, independent discovery, same-pool evaluation, the first bridge, and a second-round exclusion. With `--write-fixture`, it saves request query parameters plus raw Qloo response JSON to an ignored local fixture for schema debugging.
 
 After deployment, run the final automated readiness check:
 

@@ -1,24 +1,46 @@
 from __future__ import annotations
 
+import argparse
 import json
 import os
-import sys
-from dataclasses import asdict
+from pathlib import Path
 
 from agent import CommonGroundAgent
-from qloo_client import RealQlooClient
+from qloo_client import QlooTransport, RealQlooClient
 
 
 PROFILE_A = ["Blade Runner", "Aphex Twin"]
 PROFILE_B = ["Amelie", "Daft Punk"]
 
 
-def main() -> int:
+class RecordingTransport:
+    """Record request params + response JSON, never headers or secrets."""
+
+    def __init__(self, transport: QlooTransport):
+        self.transport = transport
+        self.calls: list[dict] = []
+
+    def get_json(self, path: str, params: dict | None = None) -> dict:
+        payload = self.transport.get_json(path, params)
+        self.calls.append({"path": path, "params": params or {}, "response": payload})
+        return payload
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Read-only Qloo live contract smoke test")
+    parser.add_argument(
+        "--write-fixture",
+        action="store_true",
+        help="write sanitized_live_fixture.json with query params and raw response JSON; no API headers/key are recorded",
+    )
+    args = parser.parse_args(argv)
+
     if not os.environ.get("QLOO_API_KEY"):
         print("BLOCKED: QLOO_API_KEY is not set.")
         return 2
 
-    client = RealQlooClient()
+    recorder = RecordingTransport(QlooTransport())
+    client = RealQlooClient(recorder)
 
     try:
         a = client.resolve_interests(PROFILE_A)
@@ -82,6 +104,21 @@ def main() -> int:
             print("explainability: evidence mapped for the proposed bridge")
         else:
             print("explainability: WARNING — no per-result input evidence mapped")
+
+        if args.write_fixture:
+            output = Path(__file__).resolve().parent / "sanitized_live_fixture.json"
+            output.write_text(
+                json.dumps(
+                    {
+                        "note": "Qloo smoke fixture: request query params + API response JSON only. X-Api-Key is never recorded.",
+                        "calls": recorder.calls,
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                ),
+                encoding="utf-8",
+            )
+            print(f"fixture: wrote {output.name} ({len(recorder.calls)} call(s))")
 
         print("PASS: live Qloo bridge flow completed without exposing the API key.")
         return 0

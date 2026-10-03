@@ -86,6 +86,16 @@ def search_interests(query: str) -> dict:
     }
 
 
+def health_state() -> tuple[int, dict]:
+    mode = os.environ.get("COMMON_GROUND_MODE", "fixture").strip().lower()
+    key_present = bool(os.environ.get("QLOO_API_KEY"))
+    ok = mode != "live" or key_present
+    return (
+        HTTPStatus.OK if ok else HTTPStatus.SERVICE_UNAVAILABLE,
+        {"ok": ok, "mode": mode, "qloo_key_present": key_present},
+    )
+
+
 class Handler(BaseHTTPRequestHandler):
     server_version = "CommonGround/0.3"
 
@@ -127,15 +137,8 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(raw)
             return
         if request_path == "/health":
-            mode = os.environ.get("COMMON_GROUND_MODE", "fixture").strip().lower()
-            self._send_json(
-                HTTPStatus.OK,
-                {
-                    "ok": True,
-                    "mode": mode,
-                    "qloo_key_present": bool(os.environ.get("QLOO_API_KEY")),
-                },
-            )
+            status, body = health_state()
+            self._send_json(status, body)
             return
         if request_path == "/api/search":
             try:
