@@ -98,17 +98,18 @@
             "candidate_pool": 8,
             "evaluated_a": 8,
             "evaluated_b": 8,
-            "complete_candidates": 8
+            "complete_candidates": 8,
+            "excluded_seed_movies": 2
           },
           "policy": "minimize worse rank, then total rank; missing evaluation stays unknown",
           "trace": [
             {
               "name": "Resolve real taste entities",
-              "detail": "Resolved 2 interest(s) for A and 2 for B."
+              "detail": "Resolved 2 interest(s) for A and 2 for B; 2 input movie(s) are excluded from bridge candidates."
             },
             {
               "name": "Build a shared candidate pool",
-              "detail": "Round 1: top-3 overlap was 0; unioned 8 movie candidate(s) from both searches."
+              "detail": "Round 1: top-3 overlap was 0; unioned 8 movie candidate(s) from both searches after excluding 0 vetoed/known item(s) and 2 input movie(s)."
             },
             {
               "name": "Evaluate the same movies for both people",
@@ -206,17 +207,18 @@
             "candidate_pool": 7,
             "evaluated_a": 7,
             "evaluated_b": 7,
-            "complete_candidates": 7
+            "complete_candidates": 7,
+            "excluded_seed_movies": 2
           },
           "policy": "minimize worse rank, then total rank; missing evaluation stays unknown",
           "trace": [
             {
               "name": "Resolve real taste entities",
-              "detail": "Resolved 2 interest(s) for A and 2 for B."
+              "detail": "Resolved 2 interest(s) for A and 2 for B; 2 input movie(s) are excluded from bridge candidates."
             },
             {
               "name": "Build a shared candidate pool",
-              "detail": "Round 2: top-3 overlap was 0; unioned 7 movie candidate(s) from both searches after excluding 1 vetoed/known item(s)."
+              "detail": "Round 2: top-3 overlap was 0; unioned 7 movie candidate(s) from both searches after excluding 1 vetoed/known item(s) and 2 input movie(s)."
             },
             {
               "name": "Evaluate the same movies for both people",
@@ -327,17 +329,18 @@
             "candidate_pool": 8,
             "evaluated_a": 8,
             "evaluated_b": 8,
-            "complete_candidates": 8
+            "complete_candidates": 8,
+            "excluded_seed_movies": 2
           },
           "policy": "minimize worse rank, then total rank; missing evaluation stays unknown",
           "trace": [
             {
               "name": "Resolve real taste entities",
-              "detail": "Resolved 2 interest(s) for A and 2 for B."
+              "detail": "Resolved 2 interest(s) for A and 2 for B; 2 input movie(s) are excluded from bridge candidates."
             },
             {
               "name": "Build a shared candidate pool",
-              "detail": "Round 1: top-3 overlap was 1; unioned 8 movie candidate(s) from both searches."
+              "detail": "Round 1: top-3 overlap was 1; unioned 8 movie candidate(s) from both searches after excluding 0 vetoed/known item(s) and 2 input movie(s)."
             },
             {
               "name": "Evaluate the same movies for both people",
@@ -435,17 +438,18 @@
             "candidate_pool": 7,
             "evaluated_a": 7,
             "evaluated_b": 7,
-            "complete_candidates": 7
+            "complete_candidates": 7,
+            "excluded_seed_movies": 2
           },
           "policy": "minimize worse rank, then total rank; missing evaluation stays unknown",
           "trace": [
             {
               "name": "Resolve real taste entities",
-              "detail": "Resolved 2 interest(s) for A and 2 for B."
+              "detail": "Resolved 2 interest(s) for A and 2 for B; 2 input movie(s) are excluded from bridge candidates."
             },
             {
               "name": "Build a shared candidate pool",
-              "detail": "Round 2: top-3 overlap was 2; unioned 7 movie candidate(s) from both searches after excluding 1 vetoed/known item(s)."
+              "detail": "Round 2: top-3 overlap was 2; unioned 7 movie candidate(s) from both searches after excluding 1 vetoed/known item(s) and 2 input movie(s)."
             },
             {
               "name": "Evaluate the same movies for both people",

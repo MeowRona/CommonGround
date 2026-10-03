@@ -52,8 +52,37 @@ class AgentTests(unittest.TestCase):
         client = RecordingClient()
         result = CommonGroundAgent(client).run(["A"], ["B"], round_no=2, rejected_ids=["shared"])
         self.assertTrue(all(take == 25 for _, take, _ in client.discover_calls))
-        self.assertTrue(all(excluded == ("shared",) for _, _, excluded in client.discover_calls))
+        self.assertTrue(
+            all(
+                excluded == ("shared", "seed:A", "seed:B")
+                for _, _, excluded in client.discover_calls
+            )
+        )
         self.assertNotEqual(result.get("bridge", {}).get("entity_id"), "shared")
+
+    def test_input_movie_seed_cannot_become_bridge_even_if_client_overreturns_it(self):
+        class SeedEchoClient:
+            mode = "test"
+
+            def resolve_interests(self, names):
+                return [ResolvedInterest(f"seed:{names[0]}", names[0], "urn:entity:movie")]
+
+            def discover_candidates(self, interests, *, take, exclude_ids):
+                return [
+                    CandidateRef("seed:A", "A"),
+                    CandidateRef("seed:B", "B"),
+                    CandidateRef("movie:bridge", "Third Object"),
+                ]
+
+            def evaluate_candidates(self, interests, candidate_ids):
+                return [
+                    CandidateEvaluation(entity_id, entity_id, rank)
+                    for rank, entity_id in enumerate(candidate_ids, 1)
+                ]
+
+        result = CommonGroundAgent(SeedEchoClient()).run(["A"], ["B"])
+        self.assertEqual(result["bridge"]["entity_id"], "movie:bridge")
+        self.assertEqual(result["diagnostics"]["excluded_seed_movies"], 2)
 
     def test_second_round_candidate_union_never_exceeds_same_pool_limit(self):
         class WideClient:

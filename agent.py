@@ -124,10 +124,20 @@ class CommonGroundAgent:
         ):
             raise ValueError("rejected entity ID is invalid")
 
+        seed_movie_ids = list(
+            dict.fromkeys(
+                interest.entity_id
+                for interest in a_interests + b_interests
+                if interest.entity_type == "urn:entity:movie"
+            )
+        )
+        discovery_excludes = list(dict.fromkeys(rejected + seed_movie_ids))
+
         trace: list[AgentStep] = [
             AgentStep(
                 "Resolve real taste entities",
-                f"Resolved {len(a_interests)} interest(s) for A and {len(b_interests)} for B.",
+                f"Resolved {len(a_interests)} interest(s) for A and {len(b_interests)} for B; "
+                f"{len(seed_movie_ids)} input movie(s) are excluded from bridge candidates.",
             )
         ]
 
@@ -139,16 +149,19 @@ class CommonGroundAgent:
                 self.client.discover_candidates,
                 a_interests,
                 take=take,
-                exclude_ids=rejected,
+                exclude_ids=discovery_excludes,
             )
             future_b = pool_exec.submit(
                 self.client.discover_candidates,
                 b_interests,
                 take=take,
-                exclude_ids=rejected,
+                exclude_ids=discovery_excludes,
             )
             candidates_a = future_a.result()
             candidates_b = future_b.result()
+        blocked_ids = set(discovery_excludes)
+        candidates_a = [row for row in candidates_a if row.entity_id not in blocked_ids]
+        candidates_b = [row for row in candidates_b if row.entity_id not in blocked_ids]
         pool = _stable_union(candidates_a, candidates_b)
         top3_overlap = len(
             {row.entity_id for row in candidates_a[:3]}
@@ -158,7 +171,12 @@ class CommonGroundAgent:
             AgentStep(
                 "Build a shared candidate pool",
                 f"Round {round_no}: top-3 overlap was {top3_overlap}; unioned {len(pool)} movie candidate(s) from both searches"
-                + (f" after excluding {len(rejected)} vetoed/known item(s)." if rejected else "."),
+                + (
+                    f" after excluding {len(rejected)} vetoed/known item(s) and "
+                    f"{len(seed_movie_ids)} input movie(s)."
+                    if rejected or seed_movie_ids
+                    else "."
+                ),
             )
         )
 
@@ -191,6 +209,7 @@ class CommonGroundAgent:
             "evaluated_a": len(eval_a),
             "evaluated_b": len(eval_b),
             "complete_candidates": complete_count,
+            "excluded_seed_movies": len(seed_movie_ids),
         }
         if not bridges:
             return {

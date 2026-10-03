@@ -39,6 +39,8 @@ For each profile, the server calls `/v2/insights` with:
 - `take=20` in round 1, `take=25` in round 2
 - `filter.exclude.entities=<vetoed IDs>` when needed
 
+All movie entities that either person supplied as input tastes are also excluded from discovery and filtered again locally. The proposed bridge must therefore be a **third cultural object**, not one of the seed movies already supplied by either person.
+
 A and B discovery requests run in parallel.
 
 ## 3. Same-pool evaluation

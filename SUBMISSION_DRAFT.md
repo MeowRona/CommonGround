@@ -24,6 +24,8 @@ Instead of ranking only the intersection, it unions both candidate sets and asks
 
 CommonGround then minimizes the worse of the two ranks and proposes one bridge movie.
 
+Input movies from either person are excluded from the candidate pool, so the bridge must be a third cultural object rather than simply echoing one person's seed.
+
 Each person responds:
 
 - **Want to try**
