@@ -122,6 +122,21 @@ class AppTests(unittest.TestCase):
         self.assertFalse(allow_request(key, "test", 2, now=102.0))
         self.assertTrue(allow_request(key, "test", 2, now=161.1))
 
+    def test_rate_limit_client_map_is_bounded(self):
+        previous_max = app.RATE_KEY_MAX_ITEMS
+        with app._rate_lock:
+            app._rate_events.clear()
+        app.RATE_KEY_MAX_ITEMS = 3
+        try:
+            for index in range(6):
+                self.assertTrue(allow_request(f"client-{index}", "search", 2, now=100.0 + index))
+            with app._rate_lock:
+                self.assertLessEqual(len(app._rate_events), 3)
+        finally:
+            app.RATE_KEY_MAX_ITEMS = previous_max
+            with app._rate_lock:
+                app._rate_events.clear()
+
     def test_configured_cors_origin_is_exact(self):
         prior = app.FRONTEND_ORIGIN
         app.FRONTEND_ORIGIN = "https://meowrona.github.io"

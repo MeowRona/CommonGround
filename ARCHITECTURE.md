@@ -79,6 +79,6 @@ For the final submission, `docs/runtime_config.json` points the same Pages front
 
 ## 8. Public-demo protection
 
-The server keeps no user profile database and disables access logging. To protect the hackathon Qloo key, it applies a small in-memory per-client request limit to search/bridge endpoints and caps simultaneous bridge executions. This is abuse protection, not authentication; the counters disappear when the free service restarts.
+The server keeps no user profile database and disables access logging. To protect the hackathon Qloo key, it applies a small in-memory per-client request limit to search/bridge endpoints, bounds the number of remembered limiter keys, and caps simultaneous bridge executions. This is abuse protection, not authentication; the counters disappear when the free service restarts.
 
 Entity search responses are cached in memory for five minutes (bounded to 256 query keys), so repeated autocomplete queries do not repeatedly consume Qloo requests. Search text, selected entity IDs/names and veto lists are length/count bounded before any Qloo call is made.

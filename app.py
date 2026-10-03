@@ -24,6 +24,7 @@ RATE_WINDOW_SECONDS = 60.0
 SEARCH_LIMIT_PER_MINUTE = 40
 BRIDGE_LIMIT_PER_MINUTE = 12
 BRIDGE_CONCURRENCY = 6
+RATE_KEY_MAX_ITEMS = 2048
 SEARCH_CACHE_TTL_SECONDS = 300.0
 SEARCH_CACHE_MAX_ITEMS = 256
 
@@ -46,7 +47,28 @@ def allow_request(client_key: str, bucket: str, limit: int, now: float | None = 
     cutoff = timestamp - RATE_WINDOW_SECONDS
     key = (client_key, bucket)
     with _rate_lock:
-        events = _rate_events[key]
+        if key not in _rate_events and len(_rate_events) >= RATE_KEY_MAX_ITEMS:
+            stale_keys = [
+                existing_key
+                for existing_key, existing_events in _rate_events.items()
+                if not existing_events or existing_events[-1] <= cutoff
+            ]
+            for stale_key in stale_keys:
+                _rate_events.pop(stale_key, None)
+                if len(_rate_events) < RATE_KEY_MAX_ITEMS:
+                    break
+            if len(_rate_events) >= RATE_KEY_MAX_ITEMS:
+                oldest_key = min(
+                    _rate_events,
+                    key=lambda existing_key: (
+                        _rate_events[existing_key][-1]
+                        if _rate_events[existing_key]
+                        else float("-inf")
+                    ),
+                )
+                _rate_events.pop(oldest_key, None)
+
+        events = _rate_events.setdefault(key, deque())
         while events and events[0] <= cutoff:
             events.popleft()
         if len(events) >= limit:
