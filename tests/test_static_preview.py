@@ -53,8 +53,9 @@ class StaticPreviewTests(unittest.TestCase):
     def test_live_backend_wake_retries_and_unlocks_controls(self):
         html = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
         self.assertIn("setInteractiveEnabled(true)", html)
-        self.assertIn("attempt<24", html)
+        self.assertIn("attempt<47", html)
         self.assertIn("2500", html)
+        self.assertIn("did not become ready within two minutes", html)
 
     def test_feedback_retry_is_single_flight(self):
         html = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
