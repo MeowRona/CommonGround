@@ -134,8 +134,25 @@ class StaticPreviewTests(unittest.TestCase):
         html = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
         self.assertIn("One bridge.<br>Two different reasons.", html)
         self.assertIn("cultural bridge — NOT QLOO", html)
-        self.assertIn("Prefer candidates observed for both profiles", html)
+        self.assertIn("A bridge must be observed for both profiles", html)
         self.assertIn("exclude this cultural bridge", html)
+
+    def test_open_data_never_promotes_one_sided_candidate_as_bridge(self):
+        html = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+        self.assertIn("if(!(seenA&&seenB))return false", html)
+        self.assertIn("Require two-sided evidence", html)
+        self.assertIn("complete_candidates:scored.length", html)
+
+    def test_open_data_filters_one_sided_seed_satellites(self):
+        html = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+        self.assertIn("function mentionsSeed", html)
+        self.assertIn("return mentionsA===mentionsB", html)
+
+    def test_open_data_setup_labels_are_not_corrupted(self):
+        html = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+        self.assertIn("Person A — select 1–3", html)
+        self.assertIn("Person B — select 1–3", html)
+        self.assertNotIn("Person A ? select 1?3", html)
 
     def test_title_suggestion_menu_is_scrollable(self):
         html = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
