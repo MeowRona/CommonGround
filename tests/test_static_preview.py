@@ -133,7 +133,7 @@ class StaticPreviewTests(unittest.TestCase):
     def test_open_data_bridge_can_be_any_cultural_object(self):
         html = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
         self.assertIn("One bridge.<br>Two different reasons.", html)
-        self.assertIn("Temporary Wikimedia cultural bridge — NOT QLOO", html)
+        self.assertIn("cultural bridge — NOT QLOO", html)
         self.assertIn("Prefer candidates observed for both profiles", html)
         self.assertIn("exclude this cultural bridge", html)
 
@@ -143,6 +143,22 @@ class StaticPreviewTests(unittest.TestCase):
         self.assertIn("overflow-y:auto", html)
         self.assertIn("overscroll-behavior:contain", html)
         self.assertIn("max-height:280px", html)
+
+    def test_bridge_target_switch_filters_open_data_candidates(self):
+        html = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+        for label in ("Any culture", "Movies", "Music artists", "Albums", "Games", "Places"):
+            self.assertIn(label, html)
+        self.assertIn("TARGET_DOMAIN==='any'||x.kind===TARGET_DOMAIN", html)
+        self.assertIn("target_domain:TARGET_DOMAIN", html)
+        self.assertIn("Filter bridge domain", html)
+
+    def test_open_data_candidate_typing_supports_switch_domains(self):
+        html = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+        self.assertIn("return'album'", html)
+        self.assertIn("return'game'", html)
+        self.assertIn("return'artist'", html)
+        self.assertIn("return'place'", html)
+        self.assertIn("prop:'pageprops|description'", html)
 
 
 if __name__ == "__main__":
