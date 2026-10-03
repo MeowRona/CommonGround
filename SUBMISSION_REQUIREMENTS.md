@@ -7,6 +7,8 @@ Official sources:
 
 Deadline: **October 30, 2026 at 11:45 PM EDT**.
 
+Judging currently runs through **November 16, 2026 at 11:45 PM EST**, so the public demo must remain free and accessible until then.
+
 ## Eligibility / project baseline
 
 | Requirement | State | Evidence / action |
@@ -51,4 +53,3 @@ Do **not** submit while any of these is true:
 - a vetoed result can return in round 2;
 - any public explanation lacks backing Qloo explainability evidence;
 - repository is not clean/public or GitHub no longer detects the MIT license.
-

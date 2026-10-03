@@ -35,7 +35,7 @@ After the key is verified locally:
 7. set `LIVE_API_URL` locally to the resulting HTTPS API origin;
 8. run `python submission_preflight.py`.
 
-The final Devpost URL can remain `https://meowrona.github.io/CommonGround/`. Pages loads immediately and starts waking the free Render backend on page load, reducing how much of Render's cold start the judge experiences.
+The final Devpost URL can remain `https://meowrona.github.io/CommonGround/`. Pages loads immediately and starts waking the free Render backend on page load, polling health for up to roughly two minutes before showing a clear unavailable state.
 
 ## Free-host requirement
 
@@ -43,7 +43,7 @@ Use a host only if all of these are true at publication time:
 
 1. no payment method or paid subscription is required for the contest demo;
 2. the service can run a small Python HTTP process and inject environment secrets;
-3. the public URL remains usable through the judging period;
+3. the public URL remains usable through the judging period, which currently ends **November 16, 2026 at 11:45 PM EST**;
 4. sleeping/cold-start behavior does not make judging impractical;
 5. its terms allow a public hackathon demo.
 
