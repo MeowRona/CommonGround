@@ -11,6 +11,8 @@ from qloo_client import QlooTransport, RealQlooClient
 
 PROFILE_A = ["Blade Runner", "Aphex Twin"]
 PROFILE_B = ["Amelie", "Daft Punk"]
+PROFILE_A_TYPES = ["urn:entity:movie", "urn:entity:artist"]
+PROFILE_B_TYPES = ["urn:entity:movie", "urn:entity:artist"]
 
 
 class RecordingTransport:
@@ -24,6 +26,22 @@ class RecordingTransport:
         payload = self.transport.get_json(path, params)
         self.calls.append({"path": path, "params": params or {}, "response": payload})
         return payload
+
+
+def resolve_exact(client: RealQlooClient, names: list[str], expected_types: list[str]):
+    resolved = []
+    for name, expected_type in zip(names, expected_types, strict=True):
+        matches = [
+            row
+            for row in client.search_interests(name, 5)
+            if row.name.casefold() == name.casefold() and row.entity_type == expected_type
+        ]
+        if len(matches) != 1:
+            raise RuntimeError(
+                f"Expected exactly one Qloo match for {name!r} as {expected_type}, got {len(matches)}"
+            )
+        resolved.append(matches[0])
+    return resolved
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -43,8 +61,8 @@ def main(argv: list[str] | None = None) -> int:
     client = RealQlooClient(recorder)
 
     try:
-        a = client.resolve_interests(PROFILE_A)
-        b = client.resolve_interests(PROFILE_B)
+        a = resolve_exact(client, PROFILE_A, PROFILE_A_TYPES)
+        b = resolve_exact(client, PROFILE_B, PROFILE_B_TYPES)
         print("resolve:A", [(x.name, x.entity_type) for x in a])
         print("resolve:B", [(x.name, x.entity_type) for x in b])
 

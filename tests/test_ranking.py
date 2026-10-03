@@ -145,6 +145,54 @@ class RankingTests(unittest.TestCase):
         self.assertEqual(rows[0].evidence, ("Blade Runner",))
         self.assertEqual(rows[1].evidence, ())
 
+    def test_explainability_does_not_match_entity_id_as_substring(self):
+        class FakeTransport:
+            def get_json(self, path, params):
+                return {
+                    "results": {
+                        "entities": [
+                            {
+                                "entity_id": "movie:arrival",
+                                "name": "Arrival",
+                                "query": {
+                                    "explainability": {
+                                        "note": "prefix-seed:blade-suffix"
+                                    }
+                                },
+                            }
+                        ]
+                    }
+                }
+
+        client = RealQlooClient(FakeTransport())
+        interest = type("I", (), {"entity_id": "seed:blade", "name": "Blade Runner", "entity_type": "urn:entity:movie"})()
+        rows = client.evaluate_candidates([interest], ["movie:arrival"])
+        self.assertEqual(rows[0].evidence, ())
+
+    def test_explainability_matches_entity_id_used_as_dict_key(self):
+        class FakeTransport:
+            def get_json(self, path, params):
+                return {
+                    "results": {
+                        "entities": [
+                            {
+                                "entity_id": "movie:arrival",
+                                "name": "Arrival",
+                                "query": {
+                                    "explainability": {
+                                        "contributors": {"seed:blade": {"score": 0.4}}
+                                    }
+                                },
+                            }
+                        ]
+                    }
+                }
+
+        client = RealQlooClient(FakeTransport())
+        interest = type("I", (), {"entity_id": "seed:blade", "name": "Blade Runner", "entity_type": "urn:entity:movie"})()
+        rows = client.evaluate_candidates([interest], ["movie:arrival"])
+        self.assertEqual(rows[0].evidence, ("Blade Runner",))
+
 
 if __name__ == "__main__":
     unittest.main()

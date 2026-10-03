@@ -174,12 +174,27 @@ def _affinity(row: dict) -> float | None:
 
 
 def _explainability_evidence(row: dict, interests: list[ResolvedInterest]) -> tuple[str, ...]:
-    """Conservatively surface only input IDs literally present in explainability metadata."""
+    """Surface only input IDs that occur as exact strings in explainability metadata."""
     query = row.get("query")
     if not isinstance(query, dict) or "explainability" not in query:
         return ()
-    blob = json.dumps(query.get("explainability"), ensure_ascii=False)
-    names = [interest.name for interest in interests if interest.entity_id in blob]
+
+    strings: set[str] = set()
+
+    def collect(value) -> None:
+        if isinstance(value, str):
+            strings.add(value)
+        elif isinstance(value, dict):
+            for key, child in value.items():
+                if isinstance(key, str):
+                    strings.add(key)
+                collect(child)
+        elif isinstance(value, list):
+            for child in value:
+                collect(child)
+
+    collect(query.get("explainability"))
+    names = [interest.name for interest in interests if interest.entity_id in strings]
     return tuple(names)
 
 
