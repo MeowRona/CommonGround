@@ -34,7 +34,7 @@ The current official docs describe per-result `query.explainability` as showing 
 5. Evaluate the identical union for A using `filter.results.entities`.
 6. Evaluate the identical union for B.
 7. Inspect exact entity ID/name fields, ordering, `query.affinity` and `query.explainability` shape.
-8. Run one exclusion with `filter.exclude.entities` and confirm the rejected movie cannot return.
+8. Confirm every input movie seed is present in `filter.exclude.entities`, then run one feedback exclusion and confirm the rejected bridge cannot return in round 2.
 9. Run `python live_smoke.py --write-fixture` to save `sanitized_live_fixture.json`. The recorder stores query parameters and response JSON only; it never stores the `X-Api-Key` header.
 10. Run the entire automated suite plus HTTP smoke test in `COMMON_GROUND_MODE=live`.
 

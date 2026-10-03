@@ -60,7 +60,10 @@ def resolve_exact(client: RealQlooClient, names: list[str], expected_types: list
 
 
 def validate_round_contract(
-    calls: list[dict], *, expected_discovery_take: int, rejected_id: str | None = None
+    calls: list[dict],
+    *,
+    expected_discovery_take: int,
+    required_excluded_ids: list[str] | None = None,
 ) -> dict:
     insights = [call for call in calls if call.get("path") == "/v2/insights"]
     discovery = [call for call in insights if "filter.results.entities" not in call.get("params", {})]
@@ -80,13 +83,20 @@ def validate_round_contract(
     if len(pool_ids) > 50:
         raise RuntimeError("Same-pool evaluation exceeded the Qloo 50-result request limit")
 
-    if rejected_id:
-        if rejected_id in pool_ids:
-            raise RuntimeError("Rejected movie leaked back into the second-round evaluation pool")
+    required_excluded = list(dict.fromkeys(required_excluded_ids or []))
+    if required_excluded:
+        leaked = [entity_id for entity_id in required_excluded if entity_id in pool_ids]
+        if leaked:
+            raise RuntimeError(
+                f"Excluded movie leaked back into the evaluation pool: {leaked[0]}"
+            )
         for call in discovery:
             excluded = str(call["params"].get("filter.exclude.entities", "")).split(",")
-            if rejected_id not in excluded:
-                raise RuntimeError("Second-round discovery did not send filter.exclude.entities")
+            missing = [entity_id for entity_id in required_excluded if entity_id not in excluded]
+            if missing:
+                raise RuntimeError(
+                    f"Discovery did not exclude required entity: {missing[0]}"
+                )
 
     return {
         "discovery_calls": len(discovery),
@@ -114,6 +124,11 @@ def main(argv: list[str] | None = None) -> int:
     try:
         a = resolve_exact(client, PROFILE_A, PROFILE_A_TYPES)
         b = resolve_exact(client, PROFILE_B, PROFILE_B_TYPES)
+        seed_movie_ids = [
+            row.entity_id
+            for row in a + b
+            if row.entity_type == "urn:entity:movie"
+        ]
         print("resolve:A", [(x.name, x.entity_type) for x in a])
         print("resolve:B", [(x.name, x.entity_type) for x in b])
 
@@ -123,7 +138,9 @@ def main(argv: list[str] | None = None) -> int:
             raise RuntimeError("No bridge survived complete evaluation")
         round1_calls = recorder.snapshot()[round1_start:]
         round1_contract = validate_round_contract(
-            round1_calls, expected_discovery_take=20
+            round1_calls,
+            expected_discovery_take=20,
+            required_excluded_ids=seed_movie_ids,
         )
         print("round1_contract:", round1_contract)
         print("round1_diagnostics:", bridge.get("diagnostics", {}))
@@ -154,7 +171,7 @@ def main(argv: list[str] | None = None) -> int:
         round2_contract = validate_round_contract(
             round2_calls,
             expected_discovery_take=25,
-            rejected_id=first["entity_id"],
+            required_excluded_ids=seed_movie_ids + [first["entity_id"]],
         )
         print("round2_contract:", round2_contract)
         if second.get("bridge") and second["bridge"]["entity_id"] == first["entity_id"]:

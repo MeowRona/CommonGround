@@ -166,10 +166,16 @@ def main() -> int:
             }
             first = fetch_json(f"{live_url}/api/bridge", bridge_payload)
             bridge = first.get("bridge")
+            seed_movie_ids = {
+                row["entity_id"]
+                for row in profile_a + profile_b
+                if row.get("kind") == "movie"
+            }
             bridge_ok = (
                 first.get("status") == "proposal"
                 and isinstance(bridge, dict)
                 and bool(bridge.get("entity_id"))
+                and bridge.get("entity_id") not in seed_movie_ids
             )
             results.append(
                 check(

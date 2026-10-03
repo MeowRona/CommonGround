@@ -38,9 +38,37 @@ class LiveSmokeTests(unittest.TestCase):
             insight({"take": 2, "filter.results.entities": "m1,m2"}),
         ]
         summary = validate_round_contract(
-            calls, expected_discovery_take=25, rejected_id="m0"
+            calls, expected_discovery_take=25, required_excluded_ids=["m0"]
         )
         self.assertEqual(summary["same_pool_size"], 2)
+
+    def test_round_contract_requires_seed_movie_exclusions(self):
+        calls = [
+            insight({"take": 20, "filter.exclude.entities": "seed-a,seed-b"}),
+            insight({"take": 20, "filter.exclude.entities": "seed-a,seed-b"}),
+            insight({"take": 2, "filter.results.entities": "m1,m2"}),
+            insight({"take": 2, "filter.results.entities": "m1,m2"}),
+        ]
+        summary = validate_round_contract(
+            calls,
+            expected_discovery_take=20,
+            required_excluded_ids=["seed-a", "seed-b"],
+        )
+        self.assertEqual(summary["same_pool_size"], 2)
+
+    def test_round_contract_rejects_missing_required_exclusion(self):
+        calls = [
+            insight({"take": 20, "filter.exclude.entities": "seed-a"}),
+            insight({"take": 20, "filter.exclude.entities": "seed-a"}),
+            insight({"take": 2, "filter.results.entities": "m1,m2"}),
+            insight({"take": 2, "filter.results.entities": "m1,m2"}),
+        ]
+        with self.assertRaises(RuntimeError):
+            validate_round_contract(
+                calls,
+                expected_discovery_take=20,
+                required_excluded_ids=["seed-a", "seed-b"],
+            )
 
 
 if __name__ == "__main__":
