@@ -48,6 +48,8 @@ The live client already implements:
 
 The remaining live gate is a real hackathon API key and one schema smoke test against the competition environment.
 
+Official API key request form: https://forms.gle/zz12orkLHTAneLGz6
+
 The repository also contains a prepared `render.yaml` for a free live backend once that smoke test passes.
 
 ## Run locally

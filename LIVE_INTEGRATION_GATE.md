@@ -1,5 +1,7 @@
 # Live Qloo integration gate
 
+Official hackathon API key request form: https://forms.gle/zz12orkLHTAneLGz6
+
 Official references used for the request contract:
 
 - https://docs.qloo.com/reference/qloo-llm-hackathon-developer-guide
