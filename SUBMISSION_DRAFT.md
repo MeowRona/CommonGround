@@ -44,3 +44,10 @@ CommonGround needs structured cross-domain cultural affinity, not generic text g
 - add one concrete live A/B example showing that different profiles change Qloo rankings;
 - confirm the hosted demo and public repository URLs;
 - remove this warning and verify every statement against the shipped build.
+
+## Public links
+
+- Demo preview: https://meowrona.github.io/CommonGround/
+- Public source: https://github.com/MeowRona/CommonGround
+
+The current public preview is intentionally labelled demo-data mode. Do not final-submit until the live Qloo adapter is validated with the hackathon API key.
