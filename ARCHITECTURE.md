@@ -22,7 +22,7 @@ flowchart LR
 
 ## 1. Entity selection
 
-The browser calls `GET /api/search?q=...`. The server calls Qloo `/search`, filters to supported movie/artist entities, and returns stable IDs plus canonical names/types.
+The browser calls `GET /api/search?q=...`. The server calls Qloo `/search` with `types=movie,artist`, filters defensively to those supported types, and returns stable IDs plus canonical names/types.
 
 The browser sends selected IDs back in `profile_a_entities` and `profile_b_entities`. The Qloo API key never reaches the browser.
 
@@ -33,6 +33,7 @@ For each profile, the server calls `/v2/insights` with:
 - `filter.type=urn:entity:movie`
 - `signal.interests.entities=<selected IDs>`
 - `feature.explainability=true`
+- `sort_by=affinity` explicitly, so rank semantics do not depend on an undocumented/default ordering
 - `take=20` in round 1, `take=25` in round 2
 - `filter.exclude.entities=<vetoed IDs>` when needed
 

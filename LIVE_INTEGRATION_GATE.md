@@ -20,6 +20,7 @@ Official references used for the request contract:
 - Candidate re-scoring: `filter.results.entities`
 - Exclusions: `filter.exclude.entities`
 - Explainability: `feature.explainability=true`
+- Explicit ordering: `sort_by=affinity`
 - Result count: `take`, max 50
 
 The current official docs describe per-result `query.explainability` as showing which input entities contributed to the recommendation, with normalized contribution scores. They also state that explainability may be unavailable and return a warning; that case must not generate a fabricated explanation.

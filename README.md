@@ -10,6 +10,8 @@
 
 **API-key request handoff:** [QLOO_KEY_REQUEST.md](QLOO_KEY_REQUEST.md)
 
+**Submission requirements / release gate:** [SUBMISSION_REQUIREMENTS.md](SUBMISSION_REQUIREMENTS.md)
+
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/MeowRona/CommonGround)
 
 Use the Render button only after the Qloo key passes `live_smoke.py`; the Blueprint will prompt for `QLOO_API_KEY` as a secret.

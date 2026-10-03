@@ -13,6 +13,7 @@ from urllib.request import Request, urlopen
 HACKATHON_BASE_URL = "https://hackathon.api.qloo.com"
 TARGET_TYPE = "urn:entity:movie"
 SUPPORTED_INPUT_TYPES = {"urn:entity:movie", "urn:entity:artist"}
+SEARCH_INPUT_TYPES = ("urn:entity:movie", "urn:entity:artist")
 
 
 @dataclass(frozen=True)
@@ -45,7 +46,11 @@ def build_search_params(query: str, take: int = 5) -> dict[str, str | int]:
         raise ValueError("search query cannot be empty")
     if not 1 <= take <= 50:
         raise ValueError("take must be between 1 and 50")
-    return {"query": query, "take": take}
+    return {
+        "query": query,
+        "types": ",".join(SEARCH_INPUT_TYPES),
+        "take": take,
+    }
 
 
 def build_insights_params(
@@ -65,6 +70,7 @@ def build_insights_params(
         "filter.type": TARGET_TYPE,
         "signal.interests.entities": ",".join(interests),
         "feature.explainability": "true",
+        "sort_by": "affinity",
         "take": take,
     }
     results = [x.strip() for x in result_ids if x.strip()]

@@ -40,7 +40,14 @@ class RankingTests(unittest.TestCase):
             FixtureQlooClient().resolve_interests(["qwertyuiop"])
 
     def test_search_request_shape(self):
-        self.assertEqual(build_search_params("Blade Runner", 3), {"query": "Blade Runner", "take": 3})
+        self.assertEqual(
+            build_search_params("Blade Runner", 3),
+            {
+                "query": "Blade Runner",
+                "types": "urn:entity:movie,urn:entity:artist",
+                "take": 3,
+            },
+        )
 
     def test_insights_same_pool_request_shape(self):
         params = build_insights_params(
@@ -54,6 +61,7 @@ class RankingTests(unittest.TestCase):
         self.assertEqual(params["filter.results.entities"], "movie-a,movie-b")
         self.assertEqual(params["filter.exclude.entities"], "movie-x")
         self.assertEqual(params["feature.explainability"], "true")
+        self.assertEqual(params["sort_by"], "affinity")
 
     def test_transport_wraps_http_error_without_leaking_key(self):
         transport = QlooTransport(api_key="super-secret-test-key")

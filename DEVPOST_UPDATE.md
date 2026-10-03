@@ -20,6 +20,17 @@ The public GitHub Pages build is currently a clearly labelled fixture preview ge
 
 Python, JavaScript, HTML, CSS, Qloo API, REST API, Docker
 
+## Testing instructions for judges
+
+1. Open `https://meowrona.github.io/CommonGround/`. The static interface appears immediately; if the free backend was asleep, its status will switch from `live backend warming` to `live Qloo` when ready.
+2. For Person A, search and select `Blade Runner` and `Aphex Twin`.
+3. For Person B, search and select `Amelie` and `Daft Punk`.
+4. Click **Find a bridge**. Inspect the naive top-3 overlap, shared-pool size, A/B ranks and any Qloo explainability evidence shown.
+5. Choose **Not for me** for either person. The rejected movie is excluded and CommonGround runs its wider second and final round.
+6. Choose **Want to try** for both people on a proposal to confirm common ground.
+
+The API key is server-side and no login is required.
+
 ## Public links
 
 Demo preview: https://meowrona.github.io/CommonGround/
