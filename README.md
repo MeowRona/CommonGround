@@ -1,5 +1,11 @@
 ﻿# CommonGround â€” Qloo Agentic Hackathon MVP
 
+
+**Public demo:** https://meowrona.github.io/CommonGround/
+
+**Public source:** https://github.com/MeowRona/CommonGround
+
+The public GitHub Pages build is a clearly labelled deterministic **demo-data preview**. It is not presented as live Qloo output. The live Qloo adapter remains gated on the entrant's hackathon API key and a verified response-schema smoke test.
 CommonGround is a deliberately focused decision agent for the Qloo Agentic Hackathon.
 
 Two people enter a few taste signals and choose a target domain. The agent grounds the two profiles independently, compares their candidate sets, checks whether the shared options are genuinely balanced, and widens retrieval once when the first bridge is weak. It then ranks the overlap with a **fairness-first** rule: a recommendation is strong only when its weaker-person affinity is still strong.

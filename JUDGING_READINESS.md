@@ -16,7 +16,7 @@ Ready locally:
 Remaining proof:
 - real `/search` and `/v2/insights` responses after API-key approval;
 - verified live response parser and sanitized fixture;
-- public hosted smoke test.
+- public preview deployed and reachable over HTTPS.
 
 ## Design
 
@@ -29,7 +29,7 @@ Ready locally:
 
 Remaining proof:
 - final review using live Qloo entity names/explainability;
-- public URL QA on desktop/mobile widths.
+- final public URL QA after switching from static demo data to the live Qloo backend.
 
 ## Potential Impact
 
