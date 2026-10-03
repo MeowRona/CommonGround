@@ -49,6 +49,7 @@ The live client already implements:
 - same-pool evaluation via `filter.results.entities`;
 - defensive parsing and fail-closed behavior when response structure is unexpected.
 - parallel A/B discovery and same-pool evaluation to avoid unnecessary serial API latency.
+- lightweight per-client rate limits and a bridge-concurrency cap so a public demo cannot trivially burn through the hackathon API allowance.
 
 The remaining live gate is a real hackathon API key and one schema smoke test against the competition environment.
 

@@ -76,3 +76,6 @@ GitHub Pages cannot safely hold the Qloo API key or run the Python server. The P
 
 The final Devpost demo must point to the live backend deployment, not the fixture Pages preview.
 
+## 8. Public-demo protection
+
+The server keeps no user profile database and disables access logging. To protect the hackathon Qloo key, it applies a small in-memory per-client request limit to search/bridge endpoints and caps simultaneous bridge executions. This is abuse protection, not authentication; the counters disappear when the free service restarts.

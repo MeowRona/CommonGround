@@ -4,7 +4,7 @@ import os
 import unittest
 from http import HTTPStatus
 
-from app import build_bridge, health_state, search_interests
+from app import allow_request, build_bridge, health_state, search_interests
 
 
 class AppTests(unittest.TestCase):
@@ -91,6 +91,13 @@ class AppTests(unittest.TestCase):
         status, body = health_state()
         self.assertEqual(status, HTTPStatus.SERVICE_UNAVAILABLE)
         self.assertFalse(body["ok"])
+
+    def test_rate_limit_blocks_after_limit_and_recovers_after_window(self):
+        key = "unit-test-client-rate-limit"
+        self.assertTrue(allow_request(key, "test", 2, now=100.0))
+        self.assertTrue(allow_request(key, "test", 2, now=101.0))
+        self.assertFalse(allow_request(key, "test", 2, now=102.0))
+        self.assertTrue(allow_request(key, "test", 2, now=161.1))
 
 
 if __name__ == "__main__":

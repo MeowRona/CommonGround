@@ -2,6 +2,9 @@ from __future__ import annotations
 
 import json
 import os
+import threading
+import time
+from collections import defaultdict, deque
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -15,6 +18,36 @@ ROOT = Path(__file__).resolve().parent
 INDEX = ROOT / "static" / "index.html"
 HOST = os.environ.get("HOST", "127.0.0.1")
 PORT = int(os.environ.get("PORT", os.environ.get("COMMON_GROUND_PORT", "0")))
+
+RATE_WINDOW_SECONDS = 60.0
+SEARCH_LIMIT_PER_MINUTE = 40
+BRIDGE_LIMIT_PER_MINUTE = 12
+BRIDGE_CONCURRENCY = 6
+
+_rate_lock = threading.Lock()
+_rate_events: dict[tuple[str, str], deque[float]] = defaultdict(deque)
+_bridge_slots = threading.BoundedSemaphore(BRIDGE_CONCURRENCY)
+
+
+def _client_key(headers, client_address) -> str:
+    forwarded = headers.get("X-Forwarded-For", "")
+    if forwarded:
+        return forwarded.split(",", 1)[0].strip()[:80]
+    return str(client_address[0])[:80]
+
+
+def allow_request(client_key: str, bucket: str, limit: int, now: float | None = None) -> bool:
+    timestamp = time.monotonic() if now is None else now
+    cutoff = timestamp - RATE_WINDOW_SECONDS
+    key = (client_key, bucket)
+    with _rate_lock:
+        events = _rate_events[key]
+        while events and events[0] <= cutoff:
+            events.popleft()
+        if len(events) >= limit:
+            return False
+        events.append(timestamp)
+        return True
 
 
 def get_client():
@@ -123,6 +156,16 @@ class Handler(BaseHTTPRequestHandler):
             "connect-src 'self'; img-src 'self' data:; frame-ancestors 'none'",
         )
 
+    def _rate_limit(self, bucket: str, limit: int) -> bool:
+        client = _client_key(self.headers, self.client_address)
+        if allow_request(client, bucket, limit):
+            return True
+        self._send_json(
+            HTTPStatus.TOO_MANY_REQUESTS,
+            {"error": "Too many requests. Please wait a minute and try again."},
+        )
+        return False
+
     def do_GET(self) -> None:
         parsed = urlsplit(self.path)
         request_path = parsed.path
@@ -141,6 +184,8 @@ class Handler(BaseHTTPRequestHandler):
             self._send_json(status, body)
             return
         if request_path == "/api/search":
+            if not self._rate_limit("search", SEARCH_LIMIT_PER_MINUTE):
+                return
             try:
                 query = parse_qs(parsed.query).get("q", [""])[0]
                 self._send_json(HTTPStatus.OK, search_interests(query))
@@ -154,6 +199,14 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self) -> None:
         if urlsplit(self.path).path != "/api/bridge":
             self._send_json(HTTPStatus.NOT_FOUND, {"error": "not found"})
+            return
+        if not self._rate_limit("bridge", BRIDGE_LIMIT_PER_MINUTE):
+            return
+        if not _bridge_slots.acquire(blocking=False):
+            self._send_json(
+                HTTPStatus.SERVICE_UNAVAILABLE,
+                {"error": "CommonGround is busy. Please retry shortly."},
+            )
             return
         try:
             if "application/json" not in self.headers.get("Content-Type", "").lower():
@@ -169,6 +222,8 @@ class Handler(BaseHTTPRequestHandler):
         except RuntimeError as exc:
             self._send_json(HTTPStatus.SERVICE_UNAVAILABLE, {"error": str(exc)})
             return
+        finally:
+            _bridge_slots.release()
         self._send_json(HTTPStatus.OK, result)
 
 
