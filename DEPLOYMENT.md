@@ -31,8 +31,11 @@ After the key is verified locally:
 3. choose the declared Free service;
 4. enter `QLOO_API_KEY` only in Render's secret/environment UI;
 5. deploy;
-6. set `LIVE_DEMO_URL` locally to the resulting HTTPS URL;
-7. run `python submission_preflight.py`.
+6. point the fast GitHub Pages frontend at the resulting API origin with `python configure_live_frontend.py https://<service>.onrender.com`, commit/push `docs/runtime_config.json`, and let Pages rebuild;
+7. set `LIVE_API_URL` locally to the resulting HTTPS API origin;
+8. run `python submission_preflight.py`.
+
+The final Devpost URL can remain `https://meowrona.github.io/CommonGround/`. Pages loads immediately and starts waking the free Render backend on page load, reducing how much of Render's cold start the judge experiences.
 
 ## Free-host requirement
 

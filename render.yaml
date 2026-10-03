@@ -10,5 +10,7 @@ services:
         value: 0.0.0.0
       - key: COMMON_GROUND_MODE
         value: live
+      - key: FRONTEND_ORIGIN
+        value: https://meowrona.github.io
       - key: QLOO_API_KEY
         sync: false

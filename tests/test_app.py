@@ -5,6 +5,7 @@ import unittest
 from http import HTTPStatus
 from unittest.mock import patch
 
+import app
 from app import FixtureQlooClient, allow_request, build_bridge, health_state, search_interests
 
 
@@ -120,6 +121,18 @@ class AppTests(unittest.TestCase):
         self.assertTrue(allow_request(key, "test", 2, now=101.0))
         self.assertFalse(allow_request(key, "test", 2, now=102.0))
         self.assertTrue(allow_request(key, "test", 2, now=161.1))
+
+    def test_configured_cors_origin_is_exact(self):
+        prior = app.FRONTEND_ORIGIN
+        app.FRONTEND_ORIGIN = "https://meowrona.github.io"
+        try:
+            handler = object.__new__(app.Handler)
+            handler.headers = {"Origin": "https://meowrona.github.io"}
+            self.assertEqual(handler._cors_origin(), "https://meowrona.github.io")
+            handler.headers = {"Origin": "https://evil.example"}
+            self.assertEqual(handler._cors_origin(), "")
+        finally:
+            app.FRONTEND_ORIGIN = prior
 
 
 if __name__ == "__main__":

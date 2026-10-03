@@ -40,6 +40,11 @@ class StaticPreviewTests(unittest.TestCase):
                 actual["rounds"][1]["bridge"]["entity_id"],
             )
 
+    def test_runtime_config_exists_and_has_api_base_field(self):
+        config = json.loads((ROOT / "docs" / "runtime_config.json").read_text(encoding="utf-8"))
+        self.assertIn("api_base", config)
+        self.assertIsInstance(config["api_base"], str)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,4 +1,4 @@
-﻿# Devpost update after CommonGround v2 redesign
+# Devpost update after CommonGround v2 redesign
 
 ## Elevator pitch
 
@@ -25,6 +25,8 @@ Python, JavaScript, HTML, CSS, Qloo API, REST API, Docker
 Demo preview: https://meowrona.github.io/CommonGround/
 Public repo: https://github.com/MeowRona/CommonGround
 
+For the final submission, keep the GitHub Pages URL as the demo URL after `docs/runtime_config.json` has been switched to the verified live Render API. The page loads immediately and wakes the free backend in the background.
+
 ## Media to replace
 
 Old screenshots show the removed percentage-score UI. Replace them after opening the current public preview:
@@ -36,4 +38,4 @@ Do not final-submit until the live Qloo key smoke test and live backend deployme
 
 ## Live deployment path
 
-The repo includes render.yaml for a Render Free Docker web service. After the Qloo key passes live_smoke.py, connect the repo to Render, store QLOO_API_KEY only as a secret environment variable, deploy, then run submission_preflight.py with LIVE_DEMO_URL set to the HTTPS service URL.
+The repo includes render.yaml for a Render Free Docker web service. After the Qloo key passes live_smoke.py, connect the repo to Render, store QLOO_API_KEY only as a secret environment variable, deploy, point Pages at it with configure_live_frontend.py, then run submission_preflight.py with LIVE_API_URL set to the Render HTTPS origin.

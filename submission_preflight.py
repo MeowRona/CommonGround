@@ -74,8 +74,8 @@ def main() -> int:
     else:
         print("INFO local Qloo key: not set; final readiness relies on the deployed server reporting a live key")
 
-    live_url = os.environ.get("LIVE_DEMO_URL", "").strip().rstrip("/")
-    results.append(check("live demo URL", bool(live_url), live_url or "LIVE_DEMO_URL missing"))
+    live_url = os.environ.get("LIVE_API_URL", os.environ.get("LIVE_DEMO_URL", "")).strip().rstrip("/")
+    results.append(check("live API URL", bool(live_url), live_url or "LIVE_API_URL missing"))
 
     if live_url:
         try:
@@ -145,6 +145,26 @@ def main() -> int:
             results.append(check("public repo", response.status == 200, f"HTTP {response.status}"))
     except (HTTPError, URLError) as exc:
         results.append(check("public repo", False, str(exc)))
+
+    pages_url = "https://meowrona.github.io/CommonGround"
+    try:
+        with urlopen(
+            Request(f"{pages_url}/", headers={"User-Agent": "CommonGround-preflight/1"}),
+            timeout=20,
+        ) as response:
+            results.append(check("public Pages frontend", response.status == 200, f"HTTP {response.status}"))
+        config = fetch_json(f"{pages_url}/runtime_config.json")
+        configured_api = str(config.get("api_base", "")).rstrip("/")
+        config_ok = bool(live_url) and configured_api == live_url
+        results.append(
+            check(
+                "Pages live API config",
+                config_ok,
+                configured_api or "runtime_config.json is still in fixture mode",
+            )
+        )
+    except (HTTPError, URLError, RuntimeError, json.JSONDecodeError) as exc:
+        results.append(check("public Pages frontend", False, str(exc)))
 
     if all(results):
         print("READY: automated preflight passed. Human Devpost review is still required.")

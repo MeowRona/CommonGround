@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parent
 INDEX = ROOT / "static" / "index.html"
 HOST = os.environ.get("HOST", "127.0.0.1")
 PORT = int(os.environ.get("PORT", os.environ.get("COMMON_GROUND_PORT", "0")))
+FRONTEND_ORIGIN = os.environ.get("FRONTEND_ORIGIN", "").strip().rstrip("/")
 
 RATE_WINDOW_SECONDS = 60.0
 SEARCH_LIMIT_PER_MINUTE = 40
@@ -158,6 +159,10 @@ class Handler(BaseHTTPRequestHandler):
     def log_message(self, format: str, *args) -> None:
         return
 
+    def _cors_origin(self) -> str:
+        origin = self.headers.get("Origin", "").strip().rstrip("/")
+        return origin if FRONTEND_ORIGIN and origin == FRONTEND_ORIGIN else ""
+
     def _send_json(self, status: int, body: dict) -> None:
         raw = json.dumps(body, ensure_ascii=False).encode("utf-8")
         self.send_response(status)
@@ -166,6 +171,10 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Cache-Control", "no-store")
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("Referrer-Policy", "no-referrer")
+        cors_origin = self._cors_origin()
+        if cors_origin:
+            self.send_header("Access-Control-Allow-Origin", cors_origin)
+            self.send_header("Vary", "Origin")
         self.end_headers()
         self.wfile.write(raw)
 
@@ -218,6 +227,23 @@ class Handler(BaseHTTPRequestHandler):
                 self._send_json(HTTPStatus.SERVICE_UNAVAILABLE, {"error": str(exc)})
             return
         self._send_json(HTTPStatus.NOT_FOUND, {"error": "not found"})
+
+    def do_OPTIONS(self) -> None:
+        request_path = urlsplit(self.path).path
+        if request_path not in {"/api/search", "/api/bridge", "/health"}:
+            self._send_json(HTTPStatus.NOT_FOUND, {"error": "not found"})
+            return
+        origin = self._cors_origin()
+        if not origin:
+            self._send_json(HTTPStatus.FORBIDDEN, {"error": "origin not allowed"})
+            return
+        self.send_response(HTTPStatus.NO_CONTENT)
+        self.send_header("Access-Control-Allow-Origin", origin)
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header("Access-Control-Max-Age", "600")
+        self.send_header("Vary", "Origin")
+        self.end_headers()
 
     def do_POST(self) -> None:
         if urlsplit(self.path).path != "/api/bridge":

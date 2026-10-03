@@ -48,6 +48,9 @@ def build() -> None:
     )
     shutil.copyfile(ROOT / "static" / "index.html", docs / "index.html")
     (docs / ".nojekyll").touch()
+    config = docs / "runtime_config.json"
+    if not config.exists():
+        config.write_text('{"api_base": ""}\n', encoding="utf-8")
 
 
 if __name__ == "__main__":
