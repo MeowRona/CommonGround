@@ -6,6 +6,10 @@
 
 **Architecture:** [ARCHITECTURE.md](ARCHITECTURE.md)
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/MeowRona/CommonGround)
+
+Use the Render button only after the Qloo key passes `live_smoke.py`; the Blueprint will prompt for `QLOO_API_KEY` as a secret.
+
 CommonGround helps two people with different tastes find **one movie that each person reaches for a different reason**.
 
 The core interaction is intentionally narrow:

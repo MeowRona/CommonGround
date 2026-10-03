@@ -3,6 +3,7 @@ services:
     name: commonground
     runtime: docker
     plan: free
+    autoDeployTrigger: off
     healthCheckPath: /health
     envVars:
       - key: HOST

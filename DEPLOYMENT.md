@@ -22,11 +22,12 @@ The contest requires a fully published, freely accessible working demo. The repo
 - runs `COMMON_GROUND_MODE=live`;
 - checks `/health`;
 - requires `QLOO_API_KEY` as a secret value (`sync: false`), so it is never committed.
+- has automatic deploys disabled; deployment stays an explicit contest-demo action.
 
 After the key is verified locally:
 
-1. create/sign in to a Render account;
-2. create a Blueprint from the public GitHub repository;
+1. click the Deploy to Render button in the README (or create a Blueprint from the public repository);
+2. create/sign in to a Render account;
 3. choose the declared Free service;
 4. enter `QLOO_API_KEY` only in Render's secret/environment UI;
 5. deploy;
