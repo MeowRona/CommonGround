@@ -1,49 +1,49 @@
-﻿# Judging readiness
+# Judging readiness
 
-This file maps the current build to the four equally weighted Qloo judging dimensions from the reviewed contest rules. It is an evidence checklist, not a score prediction.
+## Technological implementation
 
-## Technological Implementation
+Implemented:
+- Qloo `/search` request path and entity resolution;
+- independent `/v2/insights` movie discovery for two profiles;
+- candidate union rather than short-list intersection;
+- `filter.results.entities` same-pool evaluation for both people;
+- `filter.exclude.entities` feedback loop;
+- `feature.explainability=true`;
+- rank-based two-person decision policy;
+- maximum two-round agent loop;
+- fail-closed parsing and unknown-data handling;
+- fixture-generated public preview;
+- automated tests for the decision and request contracts.
 
-Ready locally:
-- explicit Qloo hackathon transport and documented request builders;
-- separate profile retrieval and stable-ID intersection architecture;
-- fairness-first reconciliation algorithm;
-- adaptive second retrieval pass when overlap is weak;
-- Qloo explainability requested in the live Insights call;
-- 15 unit tests plus current local HTTP smoke test;
-- no runtime third-party dependencies or hidden paid model requirement.
-
-Remaining proof:
-- real `/search` and `/v2/insights` responses after API-key approval;
-- verified live response parser and sanitized fixture;
-- public preview deployed and reachable over HTTPS.
+Still required:
+- real hackathon-key smoke test;
+- exact live response/explainability verification;
+- live backend deployment.
 
 ## Design
 
-Ready locally:
-- responsive single-page flow with clear A/B profiles and target domain;
-- visible weaker-person affinity rather than opaque aggregate score;
-- visible agent decision trace;
-- clear demo/live-state labeling;
-- escaped dynamic values and basic browser security headers.
+Current interaction focuses on one bridge movie and two visible routes instead of three generic recommendation cards.
 
-Remaining proof:
-- final review using live Qloo entity names/explainability;
-- final public URL QA after switching from static demo data to the live Qloo backend.
+The mathematical policy and trace are secondary details; the main user action is bilateral feedback.
 
-## Potential Impact
+## Potential impact
 
-Concrete use case: repeated two-person choice problems where a recommendation optimized for only one profile or a simple average can hide a bad experience for one participant. The MVP demonstrates the decision policy directly rather than making an unsupported market-size claim.
+The demonstrated use case is repeated two-person choice where an average-profile recommender can hide a bad experience for one participant. The project does not claim a market-size or superiority result without user testing.
 
-## Quality of the Idea
+## Quality of idea
 
-The distinctive mechanism is the max-min-style fairness objective plus adaptive retrieval: Qloo supplies individual cultural affinity; CommonGround decides when the overlap is good enough and optimizes for a bridge that remains acceptable to both people.
+The distinctive part is the combination of:
+- cross-domain Qloo interests;
+- same-pool evaluation for both people;
+- worse-side rank protection;
+- feedback-driven exclusion and one adaptive second round;
+- explicit willingness to return “no confirmed bridge”.
 
-## Hard blockers before submission
+## Hard blockers before final submission
 
-1. entrant obtains the hackathon API key;
-2. live adapter is validated instead of guessed;
-3. entrant approves public repository and free hosting;
-4. final rules/terms are rechecked before submission;
-5. Devpost submission is manually reviewed and sent by the entrant.
+1. Qloo API key.
+2. Live schema smoke test.
+3. Free backend host.
+4. Replace fixture preview with live public demo.
+5. Final human review and Devpost submission.
 

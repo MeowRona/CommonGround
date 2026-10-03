@@ -3,52 +3,70 @@ from __future__ import annotations
 import unittest
 
 from agent import CommonGroundAgent, normalize_profile
-from qloo_client import CandidateAffinity, MockQlooClient
+from qloo_client import CandidateEvaluation, CandidateRef, FixtureQlooClient, ResolvedInterest
 
 
-def row(entity_id: str, affinity: float) -> CandidateAffinity:
-    return CandidateAffinity(entity_id, entity_id, affinity, "movie")
-
-
-class AdaptiveStub:
+class RecordingClient:
     mode = "test"
 
     def __init__(self):
-        self.calls: list[int] = []
+        self.discover_calls: list[tuple[str, int, tuple[str, ...]]] = []
+        self.evaluate_calls: list[tuple[str, tuple[str, ...]]] = []
 
-    def recommend_for_profile(self, seeds, target_domain, limit=8):
-        self.calls.append(limit)
-        person = seeds[0]
-        if limit == 8:
-            return [row(f"{person}-only", 0.9)]
-        return [row("shared", 0.8 if person == "A" else 0.77)]
+    def resolve_interests(self, names):
+        return [ResolvedInterest(f"seed:{names[0]}", names[0], "urn:entity:movie")]
+
+    def discover_candidates(self, interests, *, take, exclude_ids):
+        who = interests[0].name
+        self.discover_calls.append((who, take, tuple(exclude_ids)))
+        rows = [
+            CandidateRef("only-a", "Only A") if who == "A" else CandidateRef("only-b", "Only B"),
+            CandidateRef("shared", "Shared"),
+        ]
+        return [row for row in rows if row.entity_id not in exclude_ids]
+
+    def evaluate_candidates(self, interests, candidate_ids):
+        who = interests[0].name
+        self.evaluate_calls.append((who, tuple(candidate_ids)))
+        order = ["shared", "only-a", "only-b"] if who == "A" else ["only-b", "shared", "only-a"]
+        return [
+            CandidateEvaluation(entity_id, entity_id, rank)
+            for rank, entity_id in enumerate(order, start=1)
+            if entity_id in candidate_ids
+        ]
 
 
 class AgentTests(unittest.TestCase):
-    def test_normalize_deduplicates_and_preserves_order(self):
-        self.assertEqual(
-            normalize_profile(["  Blade   Runner ", "blade runner", "Her"]),
-            ["Blade Runner", "Her"],
-        )
-
-    def test_too_many_signals_are_rejected(self):
+    def test_normalize_deduplicates_and_caps_profile(self):
+        self.assertEqual(normalize_profile([" Blade Runner ", "blade runner", "Aphex Twin"]), ["Blade Runner", "Aphex Twin"])
         with self.assertRaises(ValueError):
-            normalize_profile([str(i) for i in range(9)])
+            normalize_profile(["a", "b", "c", "d"])
 
-    def test_agent_adapts_when_first_pass_has_no_overlap(self):
-        client = AdaptiveStub()
-        result = CommonGroundAgent(client).run(["A"], ["B"], "movie")
-        self.assertTrue(result["agent"]["expanded_search"])
-        self.assertEqual(result["results"][0]["entity_id"], "shared")
-        self.assertEqual(client.calls, [8, 8, 20, 20])
+    def test_candidate_seen_only_in_discovery_a_is_still_evaluated_for_b(self):
+        client = RecordingClient()
+        CommonGroundAgent(client).run(["A"], ["B"])
+        eval_b_ids = set(client.evaluate_calls[1][1])
+        self.assertIn("only-a", eval_b_ids)
 
-    def test_demo_agent_returns_trace(self):
-        result = CommonGroundAgent(MockQlooClient()).run(["Blade Runner"], ["Amelie"], "movie")
-        self.assertGreaterEqual(len(result["agent"]["trace"]), 4)
-        self.assertIn(
-            result["agent"]["bridge_band"],
-            {"strong bridge", "workable bridge", "exploratory bridge"},
+    def test_second_round_widens_and_preserves_veto(self):
+        client = RecordingClient()
+        result = CommonGroundAgent(client).run(["A"], ["B"], round_no=2, rejected_ids=["shared"])
+        self.assertEqual(client.discover_calls[0][1], 40)
+        self.assertEqual(client.discover_calls[0][2], ("shared",))
+        self.assertNotEqual(result.get("bridge", {}).get("entity_id"), "shared")
+
+    def test_round_limit_is_hard(self):
+        with self.assertRaises(ValueError):
+            CommonGroundAgent(RecordingClient()).run(["A"], ["B"], round_no=3)
+
+    def test_fixture_evidence_is_candidate_specific(self):
+        result = CommonGroundAgent(FixtureQlooClient()).run(
+            ["Blade Runner", "Aphex Twin"], ["Amelie", "Daft Punk"]
         )
+        bridge = result["bridge"]
+        self.assertTrue(bridge["evidence_a"])
+        self.assertTrue(bridge["evidence_b"])
+        self.assertLessEqual(len(bridge["evidence_a"]), 2)
 
 
 if __name__ == "__main__":

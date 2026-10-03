@@ -1,53 +1,77 @@
-# Devpost submission draft — do not submit yet
+# Devpost submission draft — not final
 
 ## Project name
 
 CommonGround
 
-## Tagline
+## Elevator pitch
 
-An adaptive taste agent that protects the less enthusiastic person.
+An adaptive Qloo-powered agent that finds one movie two different tastes can reach for different reasons — and lets either person veto the compromise.
 
-## Short description
+## Inspiration
 
-CommonGround helps two people find a cultural choice they can both genuinely enjoy. Instead of merging their tastes into one average profile, the agent grounds each person independently with Qloo, inspects the overlap, and finds shared candidates whose **weaker-person affinity** is still strongest.
+Recommendation systems are good at answering “what might this person like?” but a shared decision is different. A high score for one person can hide a poor option for the other, and simply intersecting two short recommendation lists can miss strong candidates that sit just outside one person's initial window.
 
-That changes both the optimization target and the agent behavior. A recommendation with a very high score for one person and a poor score for the other is not treated as a good compromise just because its average looks respectable. If the first candidate window produces no useful bridge, the agent widens retrieval once without changing either person's stated tastes. The interface keeps both affinities and the decision trace visible.
+CommonGround treats the problem as a two-person decision process rather than one averaged profile.
 
-The intended Qloo flow is:
+## What it does
 
-`taste names -> /search entity IDs -> /v2/insights per profile -> compare overlap -> adapt retrieval if weak -> fairness-first rank -> visible explanation`
+Two people provide a few films or artists they like. CommonGround uses Qloo to resolve those cultural entities and discover movie candidates independently for each person.
 
-The local MVP currently uses deterministic demo affinities so the ranking, UI, error handling, and product interaction can be tested before an entrant API key exists. It must **not** be submitted or described as Qloo-powered until the live smoke test and mapping are complete.
+Instead of ranking only the intersection, it unions both candidate sets and asks Qloo to evaluate that **same movie pool** separately for A and B.
 
-## Key features
+CommonGround then minimizes the worse of the two ranks and proposes one bridge movie.
 
-- two independent taste profiles;
-- cross-domain target selection;
-- visible per-person affinities instead of an opaque combined score;
-- fairness-first rank based primarily on the weaker affinity;
-- adaptive retrieval when the first overlap is weak;
-- inspectable agent trace rather than hidden chain-of-thought;
-- Qloo explainability requested in live mode so influential taste entities can be surfaced when available;
-- no account/profile database or personal identifiers required by the MVP;
-- no paid LLM dependency;
-- lightweight Python standard-library backend and vanilla browser UI.
+Each person responds:
 
-## Why Qloo is essential
+- **Want to try**
+- **Already know it**
+- **Not for me**
 
-CommonGround needs structured cross-domain cultural affinity, not generic text generation. Qloo is intended to supply entity resolution, profile-specific affinity ranking, and recommendation explainability. The application layer then solves a different problem: decide whether two Qloo-grounded result sets contain adequate common ground, adapt retrieval when they do not, and rank the final bridge fairly.
+Any veto or already-known result is excluded. The agent widens the search once and tries again. After two rounds it stops rather than forcing a compromise.
 
-## Before this text becomes final
+## How Qloo is used
 
-- replace all demo data with verified live Qloo results;
-- document the exact live entity types/domains used;
-- add one concrete live A/B example showing that different profiles change Qloo rankings;
-- confirm the hosted demo and public repository URLs;
-- remove this warning and verify every statement against the shipped build.
+The intended live flow is:
 
-## Public links
+`taste names -> /search -> profile A/B entity IDs -> /v2/insights discovery -> union candidate IDs -> /v2/insights with filter.results.entities for A -> same pool for B -> fairness rank -> feedback -> optional second search`
 
-- Demo preview: https://meowrona.github.io/CommonGround/
-- Public source: https://github.com/MeowRona/CommonGround
+Live requests use `feature.explainability=true`. The UI shows only evidence that can be tied back to Qloo's explainability payload; otherwise it says no explanation is available.
 
-The current public preview is intentionally labelled demo-data mode. Do not final-submit until the live Qloo adapter is validated with the hackathon API key.
+## Ranking
+
+CommonGround does not treat Qloo affinity as “probability this person will like the movie”. The decision policy uses result order within each query context.
+
+For candidates measured on both sides:
+
+1. minimize the worse rank;
+2. break ties with the sum of both ranks.
+
+Missing evaluation is treated as unknown, not zero.
+
+## Agent behavior
+
+The agent makes concrete decisions:
+
+- which candidate pool to construct;
+- whether a movie has complete evidence on both sides;
+- which bridge to propose;
+- whether user feedback requires an exclusion;
+- whether to widen retrieval for the second and final round;
+- when to stop with no confirmed compromise.
+
+## Public preview
+
+- Preview: https://meowrona.github.io/CommonGround/
+- Source: https://github.com/MeowRona/CommonGround
+
+The current public Pages build is a clearly labelled fixture preview generated from the Python decision engine. It is intentionally not described as live Qloo output while the hackathon API key is pending.
+
+## Before final submission
+
+- validate real competition-key responses;
+- verify exact explainability structure;
+- deploy the live Python backend for free;
+- update screenshots and public demo URL;
+- re-check rules and final statements against the shipped build.
+

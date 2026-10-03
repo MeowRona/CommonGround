@@ -1,0 +1,427 @@
+{
+  "scenarios": [
+    {
+      "id": "future-meets-romance",
+      "label": "Blade Runner + Aphex Twin  ×  Amelie + Daft Punk",
+      "profile_a": [
+        "Blade Runner",
+        "Aphex Twin"
+      ],
+      "profile_b": [
+        "Amelie",
+        "Daft Punk"
+      ],
+      "rounds": [
+        {
+          "mode": "fixture",
+          "status": "proposal",
+          "round": 1,
+          "max_rounds": 2,
+          "profiles": {
+            "a": [
+              {
+                "entity_id": "seed:blade-runner",
+                "name": "Blade Runner",
+                "entity_type": "urn:entity:movie"
+              },
+              {
+                "entity_id": "seed:aphex-twin",
+                "name": "Aphex Twin",
+                "entity_type": "urn:entity:artist"
+              }
+            ],
+            "b": [
+              {
+                "entity_id": "seed:amelie",
+                "name": "Amelie",
+                "entity_type": "urn:entity:movie"
+              },
+              {
+                "entity_id": "seed:daft-punk",
+                "name": "Daft Punk",
+                "entity_type": "urn:entity:artist"
+              }
+            ]
+          },
+          "bridge": {
+            "entity_id": "movie:arrival",
+            "name": "Arrival",
+            "rank_a": 3,
+            "rank_b": 4,
+            "worst_rank": 4,
+            "rank_sum": 7,
+            "evidence_a": [
+              "Blade Runner"
+            ],
+            "evidence_b": [
+              "Daft Punk"
+            ],
+            "explanation": "Same candidate evaluated for both profiles: A ranks it #3, B ranks it #4."
+          },
+          "alternatives": [
+            {
+              "entity_id": "movie:her",
+              "name": "Her",
+              "rank_a": 5,
+              "rank_b": 2,
+              "worst_rank": 5,
+              "rank_sum": 7,
+              "evidence_a": [
+                "Aphex Twin"
+              ],
+              "evidence_b": [
+                "Amelie",
+                "Daft Punk"
+              ],
+              "explanation": "Same candidate evaluated for both profiles: A ranks it #5, B ranks it #2."
+            },
+            {
+              "entity_id": "movie:drive",
+              "name": "Drive",
+              "rank_a": 4,
+              "rank_b": 5,
+              "worst_rank": 5,
+              "rank_sum": 9,
+              "evidence_a": [
+                "Aphex Twin"
+              ],
+              "evidence_b": [
+                "Daft Punk"
+              ],
+              "explanation": "Same candidate evaluated for both profiles: A ranks it #4, B ranks it #5."
+            }
+          ],
+          "policy": "minimize worse rank, then total rank; missing evaluation stays unknown",
+          "trace": [
+            {
+              "name": "Resolve real taste entities",
+              "detail": "Resolved 2 interest(s) for A and 2 for B."
+            },
+            {
+              "name": "Build a shared candidate pool",
+              "detail": "Round 1: unioned 8 movie candidate(s) from both searches."
+            },
+            {
+              "name": "Evaluate the same movies for both people",
+              "detail": "Measured 8 candidate(s) for A and 8 for B on the identical pool."
+            },
+            {
+              "name": "Propose one cultural bridge",
+              "detail": "Selected the movie with the best worst-side rank; ties use the sum of both ranks."
+            }
+          ]
+        },
+        {
+          "mode": "fixture",
+          "status": "proposal",
+          "round": 2,
+          "max_rounds": 2,
+          "profiles": {
+            "a": [
+              {
+                "entity_id": "seed:blade-runner",
+                "name": "Blade Runner",
+                "entity_type": "urn:entity:movie"
+              },
+              {
+                "entity_id": "seed:aphex-twin",
+                "name": "Aphex Twin",
+                "entity_type": "urn:entity:artist"
+              }
+            ],
+            "b": [
+              {
+                "entity_id": "seed:amelie",
+                "name": "Amelie",
+                "entity_type": "urn:entity:movie"
+              },
+              {
+                "entity_id": "seed:daft-punk",
+                "name": "Daft Punk",
+                "entity_type": "urn:entity:artist"
+              }
+            ]
+          },
+          "bridge": {
+            "entity_id": "movie:her",
+            "name": "Her",
+            "rank_a": 5,
+            "rank_b": 2,
+            "worst_rank": 5,
+            "rank_sum": 7,
+            "evidence_a": [
+              "Aphex Twin"
+            ],
+            "evidence_b": [
+              "Amelie",
+              "Daft Punk"
+            ],
+            "explanation": "Same candidate evaluated for both profiles: A ranks it #5, B ranks it #2."
+          },
+          "alternatives": [
+            {
+              "entity_id": "movie:drive",
+              "name": "Drive",
+              "rank_a": 4,
+              "rank_b": 5,
+              "worst_rank": 5,
+              "rank_sum": 9,
+              "evidence_a": [
+                "Aphex Twin"
+              ],
+              "evidence_b": [
+                "Daft Punk"
+              ],
+              "explanation": "Same candidate evaluated for both profiles: A ranks it #4, B ranks it #5."
+            },
+            {
+              "entity_id": "movie:blade-runner-2049",
+              "name": "Blade Runner 2049",
+              "rank_a": 1,
+              "rank_b": 6,
+              "worst_rank": 6,
+              "rank_sum": 7,
+              "evidence_a": [
+                "Blade Runner"
+              ],
+              "evidence_b": [
+                "Daft Punk"
+              ],
+              "explanation": "Same candidate evaluated for both profiles: A ranks it #1, B ranks it #6."
+            }
+          ],
+          "policy": "minimize worse rank, then total rank; missing evaluation stays unknown",
+          "trace": [
+            {
+              "name": "Resolve real taste entities",
+              "detail": "Resolved 2 interest(s) for A and 2 for B."
+            },
+            {
+              "name": "Build a shared candidate pool",
+              "detail": "Round 2: unioned 7 movie candidate(s) from both searches after excluding 1 vetoed/known item(s)."
+            },
+            {
+              "name": "Evaluate the same movies for both people",
+              "detail": "Measured 7 candidate(s) for A and 7 for B on the identical pool."
+            },
+            {
+              "name": "Propose one cultural bridge",
+              "detail": "Selected the movie with the best worst-side rank; ties use the sum of both ranks."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rhythm-meets-intimacy",
+      "label": "Whiplash + Radiohead  ×  Her + Daft Punk",
+      "profile_a": [
+        "Whiplash",
+        "Radiohead"
+      ],
+      "profile_b": [
+        "Her",
+        "Daft Punk"
+      ],
+      "rounds": [
+        {
+          "mode": "fixture",
+          "status": "proposal",
+          "round": 1,
+          "max_rounds": 2,
+          "profiles": {
+            "a": [
+              {
+                "entity_id": "seed:whiplash",
+                "name": "Whiplash",
+                "entity_type": "urn:entity:movie"
+              },
+              {
+                "entity_id": "seed:radiohead",
+                "name": "Radiohead",
+                "entity_type": "urn:entity:artist"
+              }
+            ],
+            "b": [
+              {
+                "entity_id": "seed:her",
+                "name": "Her",
+                "entity_type": "urn:entity:movie"
+              },
+              {
+                "entity_id": "seed:daft-punk",
+                "name": "Daft Punk",
+                "entity_type": "urn:entity:artist"
+              }
+            ]
+          },
+          "bridge": {
+            "entity_id": "movie:arrival",
+            "name": "Arrival",
+            "rank_a": 3,
+            "rank_b": 2,
+            "worst_rank": 3,
+            "rank_sum": 5,
+            "evidence_a": [
+              "Radiohead"
+            ],
+            "evidence_b": [
+              "Her"
+            ],
+            "explanation": "Same candidate evaluated for both profiles: A ranks it #3, B ranks it #2."
+          },
+          "alternatives": [
+            {
+              "entity_id": "movie:her",
+              "name": "Her",
+              "rank_a": 4,
+              "rank_b": 1,
+              "worst_rank": 4,
+              "rank_sum": 5,
+              "evidence_a": [
+                "Radiohead"
+              ],
+              "evidence_b": [
+                "Her"
+              ],
+              "explanation": "Same candidate evaluated for both profiles: A ranks it #4, B ranks it #1."
+            },
+            {
+              "entity_id": "movie:social-network",
+              "name": "The Social Network",
+              "rank_a": 2,
+              "rank_b": 4,
+              "worst_rank": 4,
+              "rank_sum": 6,
+              "evidence_a": [
+                "Radiohead"
+              ],
+              "evidence_b": [
+                "Daft Punk"
+              ],
+              "explanation": "Same candidate evaluated for both profiles: A ranks it #2, B ranks it #4."
+            }
+          ],
+          "policy": "minimize worse rank, then total rank; missing evaluation stays unknown",
+          "trace": [
+            {
+              "name": "Resolve real taste entities",
+              "detail": "Resolved 2 interest(s) for A and 2 for B."
+            },
+            {
+              "name": "Build a shared candidate pool",
+              "detail": "Round 1: unioned 8 movie candidate(s) from both searches."
+            },
+            {
+              "name": "Evaluate the same movies for both people",
+              "detail": "Measured 8 candidate(s) for A and 8 for B on the identical pool."
+            },
+            {
+              "name": "Propose one cultural bridge",
+              "detail": "Selected the movie with the best worst-side rank; ties use the sum of both ranks."
+            }
+          ]
+        },
+        {
+          "mode": "fixture",
+          "status": "proposal",
+          "round": 2,
+          "max_rounds": 2,
+          "profiles": {
+            "a": [
+              {
+                "entity_id": "seed:whiplash",
+                "name": "Whiplash",
+                "entity_type": "urn:entity:movie"
+              },
+              {
+                "entity_id": "seed:radiohead",
+                "name": "Radiohead",
+                "entity_type": "urn:entity:artist"
+              }
+            ],
+            "b": [
+              {
+                "entity_id": "seed:her",
+                "name": "Her",
+                "entity_type": "urn:entity:movie"
+              },
+              {
+                "entity_id": "seed:daft-punk",
+                "name": "Daft Punk",
+                "entity_type": "urn:entity:artist"
+              }
+            ]
+          },
+          "bridge": {
+            "entity_id": "movie:her",
+            "name": "Her",
+            "rank_a": 4,
+            "rank_b": 1,
+            "worst_rank": 4,
+            "rank_sum": 5,
+            "evidence_a": [
+              "Radiohead"
+            ],
+            "evidence_b": [
+              "Her"
+            ],
+            "explanation": "Same candidate evaluated for both profiles: A ranks it #4, B ranks it #1."
+          },
+          "alternatives": [
+            {
+              "entity_id": "movie:social-network",
+              "name": "The Social Network",
+              "rank_a": 2,
+              "rank_b": 4,
+              "worst_rank": 4,
+              "rank_sum": 6,
+              "evidence_a": [
+                "Radiohead"
+              ],
+              "evidence_b": [
+                "Daft Punk"
+              ],
+              "explanation": "Same candidate evaluated for both profiles: A ranks it #2, B ranks it #4."
+            },
+            {
+              "entity_id": "movie:ex-machina",
+              "name": "Ex Machina",
+              "rank_a": 5,
+              "rank_b": 3,
+              "worst_rank": 5,
+              "rank_sum": 8,
+              "evidence_a": [
+                "Radiohead"
+              ],
+              "evidence_b": [
+                "Her",
+                "Daft Punk"
+              ],
+              "explanation": "Same candidate evaluated for both profiles: A ranks it #5, B ranks it #3."
+            }
+          ],
+          "policy": "minimize worse rank, then total rank; missing evaluation stays unknown",
+          "trace": [
+            {
+              "name": "Resolve real taste entities",
+              "detail": "Resolved 2 interest(s) for A and 2 for B."
+            },
+            {
+              "name": "Build a shared candidate pool",
+              "detail": "Round 2: unioned 7 movie candidate(s) from both searches after excluding 1 vetoed/known item(s)."
+            },
+            {
+              "name": "Evaluate the same movies for both people",
+              "detail": "Measured 7 candidate(s) for A and 7 for B on the identical pool."
+            },
+            {
+              "name": "Propose one cultural bridge",
+              "detail": "Selected the movie with the best worst-side rank; ties use the sum of both ranks."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

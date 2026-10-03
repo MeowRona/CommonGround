@@ -3,32 +3,45 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Protocol
 
-from qloo_client import CandidateAffinity
-from ranking import rank_common_ground
+from qloo_client import CandidateEvaluation, CandidateRef, ResolvedInterest
+from ranking import rank_bridges
 
 
-class RecommendationClient(Protocol):
+MAX_ROUNDS = 2
+
+
+class BridgeClient(Protocol):
     mode: str
 
-    def recommend_for_profile(
-        self, seeds: list[str], target_domain: str, limit: int = 8
-    ) -> list[CandidateAffinity]: ...
+    def resolve_interests(self, names: list[str]) -> list[ResolvedInterest]: ...
+
+    def discover_candidates(
+        self,
+        interests: list[ResolvedInterest],
+        *,
+        take: int,
+        exclude_ids: list[str],
+    ) -> list[CandidateRef]: ...
+
+    def evaluate_candidates(
+        self,
+        interests: list[ResolvedInterest],
+        candidate_ids: list[str],
+    ) -> list[CandidateEvaluation]: ...
 
 
 @dataclass(frozen=True)
 class AgentStep:
     name: str
     detail: str
-    status: str = "done"
 
     def as_dict(self) -> dict[str, str]:
-        return {"name": self.name, "detail": self.detail, "status": self.status}
+        return {"name": self.name, "detail": self.detail}
 
 
 def normalize_profile(values: object) -> list[str]:
     if not isinstance(values, list):
         raise ValueError("Each profile must be a list of taste signals")
-
     out: list[str] = []
     seen: set[str] = set()
     for raw in values:
@@ -43,106 +56,114 @@ def normalize_profile(values: object) -> list[str]:
         if key not in seen:
             seen.add(key)
             out.append(value)
-
-    if not out:
-        raise ValueError("Each profile needs at least one taste signal")
-    if len(out) > 8:
-        raise ValueError("Use at most 8 taste signals per person")
+    if not 1 <= len(out) <= 3:
+        raise ValueError("Each person must provide 1 to 3 taste signals")
     return out
 
 
-class CommonGroundAgent:
-    """Adaptive decision workflow built around a Qloo-compatible client."""
+def _stable_union(a: list[CandidateRef], b: list[CandidateRef]) -> list[CandidateRef]:
+    seen: set[str] = set()
+    rows: list[CandidateRef] = []
+    for row in a + b:
+        if row.entity_id not in seen:
+            seen.add(row.entity_id)
+            rows.append(row)
+    return rows
 
-    def __init__(self, client: RecommendationClient):
+
+class CommonGroundAgent:
+    """Two-round bridge finder with explicit veto and same-pool evaluation."""
+
+    def __init__(self, client: BridgeClient):
         self.client = client
 
     def run(
         self,
         profile_a: object,
         profile_b: object,
-        target_domain: str,
-        result_limit: int = 3,
+        *,
+        round_no: int = 1,
+        rejected_ids: object = None,
     ) -> dict:
-        a = normalize_profile(profile_a)
-        b = normalize_profile(profile_b)
-        domain = target_domain.strip().lower()
-        if result_limit < 1 or result_limit > 10:
-            raise ValueError("result_limit must be between 1 and 10")
+        if round_no < 1 or round_no > MAX_ROUNDS:
+            raise ValueError(f"round_no must be between 1 and {MAX_ROUNDS}")
+        a_names = normalize_profile(profile_a)
+        b_names = normalize_profile(profile_b)
+        rejected = [] if rejected_ids is None else rejected_ids
+        if not isinstance(rejected, list) or not all(isinstance(x, str) for x in rejected):
+            raise ValueError("rejected_ids must be a list of entity IDs")
+        rejected = list(dict.fromkeys(x for x in rejected if x))
 
-        trace: list[AgentStep] = [
-            AgentStep(
-                "Interpret profiles",
-                f"Kept {len(a)} unique signal(s) for A and {len(b)} for B.",
-            )
-        ]
-
-        first_take = 8
-        a_results = self.client.recommend_for_profile(a, domain, limit=first_take)
-        b_results = self.client.recommend_for_profile(b, domain, limit=first_take)
+        trace: list[AgentStep] = []
+        a_interests = self.client.resolve_interests(a_names)
+        b_interests = self.client.resolve_interests(b_names)
         trace.append(
             AgentStep(
-                "Ground each profile independently",
-                f"Retrieved {len(a_results)} candidates for A and {len(b_results)} for B.",
+                "Resolve real taste entities",
+                f"Resolved {len(a_interests)} interest(s) for A and {len(b_interests)} for B.",
             )
         )
 
-        ranked = rank_common_ground(a_results, b_results, limit=result_limit)
-        initial_floor = ranked[0].floor if ranked else 0.0
-        shared_count = len({r.entity_id for r in a_results} & {r.entity_id for r in b_results})
+        take = 20 if round_no == 1 else 40
+        candidates_a = self.client.discover_candidates(
+            a_interests, take=take, exclude_ids=rejected
+        )
+        candidates_b = self.client.discover_candidates(
+            b_interests, take=take, exclude_ids=rejected
+        )
+        pool = _stable_union(candidates_a, candidates_b)
         trace.append(
             AgentStep(
-                "Stress-test the overlap",
-                f"Found {shared_count} shared candidate(s); best weaker-person affinity is {initial_floor:.0%}.",
+                "Build a shared candidate pool",
+                f"Round {round_no}: unioned {len(pool)} movie candidate(s) from both searches"
+                + (f" after excluding {len(rejected)} vetoed/known item(s)." if rejected else "."),
             )
         )
 
-        expanded = False
-        if not ranked or initial_floor < 0.58:
-            expanded = True
-            second_take = 20
-            a_results = self.client.recommend_for_profile(a, domain, limit=second_take)
-            b_results = self.client.recommend_for_profile(b, domain, limit=second_take)
-            ranked = rank_common_ground(a_results, b_results, limit=result_limit)
-            trace.append(
-                AgentStep(
-                    "Adapt retrieval",
-                    "The first pass was weak, so the agent widened retrieval once without changing either profile.",
-                )
-            )
-
-        top_floor = ranked[0].floor if ranked else 0.0
-        if top_floor >= 0.75:
-            band = "strong bridge"
-        elif top_floor >= 0.60:
-            band = "workable bridge"
-        elif ranked:
-            band = "exploratory bridge"
-        else:
-            band = "no shared candidate"
-
+        candidate_ids = [row.entity_id for row in pool]
+        eval_a = self.client.evaluate_candidates(a_interests, candidate_ids)
+        eval_b = self.client.evaluate_candidates(b_interests, candidate_ids)
         trace.append(
             AgentStep(
-                "Choose common ground",
-                (
-                    f"Ranked {len(ranked)} result(s) fairness-first; outcome is {band}."
-                    if ranked
-                    else "No shared candidate survived the current retrieval window."
-                ),
+                "Evaluate the same movies for both people",
+                f"Measured {len(eval_a)} candidate(s) for A and {len(eval_b)} for B on the identical pool.",
             )
         )
 
+        bridges = rank_bridges(eval_a, eval_b, limit=3)
+        if not bridges:
+            return {
+                "mode": self.client.mode,
+                "status": "no_bridge",
+                "round": round_no,
+                "max_rounds": MAX_ROUNDS,
+                "profiles": {
+                    "a": [x.__dict__ for x in a_interests],
+                    "b": [x.__dict__ for x in b_interests],
+                },
+                "bridge": None,
+                "alternatives": [],
+                "policy": "minimize worse rank, then total rank; missing evaluation stays unknown",
+                "trace": [step.as_dict() for step in trace],
+            }
+
+        trace.append(
+            AgentStep(
+                "Propose one cultural bridge",
+                "Selected the movie with the best worst-side rank; ties use the sum of both ranks.",
+            )
+        )
         return {
             "mode": self.client.mode,
-            "target_domain": domain,
-            "profiles": {"a": a, "b": b},
-            "results": [r.as_dict() for r in ranked],
-            "agent": {
-                "workflow": "observe -> retrieve -> compare -> adapt if weak -> decide",
-                "expanded_search": expanded,
-                "bridge_band": band,
-                "trace": [step.as_dict() for step in trace],
+            "status": "proposal",
+            "round": round_no,
+            "max_rounds": MAX_ROUNDS,
+            "profiles": {
+                "a": [x.__dict__ for x in a_interests],
+                "b": [x.__dict__ for x in b_interests],
             },
-            "method": "72% weaker-person affinity + 20% mean + 8% balance",
+            "bridge": bridges[0].as_dict(),
+            "alternatives": [row.as_dict() for row in bridges[1:]],
+            "policy": "minimize worse rank, then total rank; missing evaluation stays unknown",
+            "trace": [step.as_dict() for step in trace],
         }
-

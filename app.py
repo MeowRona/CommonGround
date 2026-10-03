@@ -8,7 +8,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 from agent import CommonGroundAgent
-from qloo_client import MockQlooClient, RealQlooClient
+from qloo_client import FixtureQlooClient, RealQlooClient
 
 
 ROOT = Path(__file__).resolve().parent
@@ -18,25 +18,27 @@ PORT = int(os.environ.get("PORT", os.environ.get("COMMON_GROUND_PORT", "0")))
 
 
 def get_client():
-    mode = os.environ.get("COMMON_GROUND_MODE", "demo").strip().lower()
-    if mode == "demo":
-        return MockQlooClient()
+    mode = os.environ.get("COMMON_GROUND_MODE", "fixture").strip().lower()
+    if mode in {"fixture", "demo"}:
+        return FixtureQlooClient()
     if mode == "live":
         return RealQlooClient()
-    raise RuntimeError("COMMON_GROUND_MODE must be 'demo' or 'live'")
+    raise RuntimeError("COMMON_GROUND_MODE must be 'fixture' or 'live'")
 
 
-def build_recommendation(payload: dict) -> dict:
+def build_bridge(payload: dict) -> dict:
     if not isinstance(payload, dict):
         raise ValueError("JSON body must be an object")
-    profile_a = payload.get("profile_a", [])
-    profile_b = payload.get("profile_b", [])
-    domain = str(payload.get("target_domain", "movie")).strip().lower()
-    return CommonGroundAgent(get_client()).run(profile_a, profile_b, domain, result_limit=3)
+    return CommonGroundAgent(get_client()).run(
+        payload.get("profile_a", []),
+        payload.get("profile_b", []),
+        round_no=int(payload.get("round", 1)),
+        rejected_ids=payload.get("rejected_ids", []),
+    )
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "CommonGround/0.2"
+    server_version = "CommonGround/0.3"
 
     def log_message(self, format: str, *args) -> None:
         return
@@ -75,7 +77,7 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(raw)
             return
         if request_path == "/health":
-            mode = os.environ.get("COMMON_GROUND_MODE", "demo").strip().lower()
+            mode = os.environ.get("COMMON_GROUND_MODE", "fixture").strip().lower()
             self._send_json(
                 HTTPStatus.OK,
                 {
@@ -88,18 +90,17 @@ class Handler(BaseHTTPRequestHandler):
         self._send_json(HTTPStatus.NOT_FOUND, {"error": "not found"})
 
     def do_POST(self) -> None:
-        if self.path != "/api/recommend":
+        if urlsplit(self.path).path != "/api/bridge":
             self._send_json(HTTPStatus.NOT_FOUND, {"error": "not found"})
             return
         try:
-            content_type = self.headers.get("Content-Type", "")
-            if "application/json" not in content_type.lower():
+            if "application/json" not in self.headers.get("Content-Type", "").lower():
                 raise ValueError("Content-Type must be application/json")
             length = int(self.headers.get("Content-Length", "0"))
             if length <= 0 or length > 64_000:
                 raise ValueError("invalid request size")
             payload = json.loads(self.rfile.read(length).decode("utf-8"))
-            result = build_recommendation(payload)
+            result = build_bridge(payload)
         except (ValueError, json.JSONDecodeError) as exc:
             self._send_json(HTTPStatus.BAD_REQUEST, {"error": str(exc)})
             return
@@ -111,7 +112,7 @@ class Handler(BaseHTTPRequestHandler):
 
 def main() -> None:
     server = ThreadingHTTPServer((HOST, PORT), Handler)
-    print(f"CommonGround demo: http://{HOST}:{server.server_port}", flush=True)
+    print(f"CommonGround: http://{HOST}:{server.server_port}", flush=True)
     try:
         server.serve_forever()
     except KeyboardInterrupt:
