@@ -91,7 +91,10 @@ def build_bridge(payload: dict) -> dict:
     if not isinstance(payload, dict):
         raise ValueError("JSON body must be an object")
     agent = CommonGroundAgent(get_client())
-    round_no = int(payload.get("round", 1))
+    raw_round = payload.get("round", 1)
+    if isinstance(raw_round, bool) or not isinstance(raw_round, int):
+        raise ValueError("round must be an integer")
+    round_no = raw_round
     rejected_ids = payload.get("rejected_ids", [])
     if "profile_a_entities" in payload or "profile_b_entities" in payload:
         a = _parse_resolved_entities(payload.get("profile_a_entities"), "profile_a_entities")

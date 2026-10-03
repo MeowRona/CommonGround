@@ -56,6 +56,16 @@ class AppTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             build_bridge(["not", "an", "object"])
 
+    def test_round_must_be_integer(self):
+        for raw_round in (None, "2", 1.5, True, {}):
+            with self.subTest(raw_round=raw_round):
+                with self.assertRaises(ValueError):
+                    build_bridge({
+                        "profile_a": ["Blade Runner", "Aphex Twin"],
+                        "profile_b": ["Amelie", "Daft Punk"],
+                        "round": raw_round,
+                    })
+
     def test_fixture_search_returns_canonical_entity(self):
         result = search_interests("blade")
         self.assertEqual(result["results"][0]["name"], "Blade Runner")

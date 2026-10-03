@@ -118,6 +118,24 @@ class HttpServerTests(unittest.TestCase):
             urlopen(request, timeout=3)
         self.assertEqual(ctx.exception.code, 400)
 
+    def test_bridge_rejects_invalid_round_type_with_400(self):
+        payload = {
+            "profile_a": ["Blade Runner", "Aphex Twin"],
+            "profile_b": ["Amelie", "Daft Punk"],
+            "round": None,
+        }
+        request = Request(
+            f"{self.base}/api/bridge",
+            data=json.dumps(payload).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with self.assertRaises(HTTPError) as ctx:
+            urlopen(request, timeout=3)
+        self.assertEqual(ctx.exception.code, 400)
+        body = json.loads(ctx.exception.read().decode("utf-8"))
+        self.assertIn("round must be an integer", body["error"])
+
 
 if __name__ == "__main__":
     unittest.main()
