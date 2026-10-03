@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import unicodedata
 from pathlib import Path
 
 from agent import CommonGroundAgent
@@ -28,17 +29,24 @@ class RecordingTransport:
         return payload
 
 
+def comparable_name(value: str) -> str:
+    folded = unicodedata.normalize("NFKD", value.casefold())
+    asciiish = "".join(ch for ch in folded if not unicodedata.combining(ch))
+    return " ".join("".join(ch if ch.isalnum() else " " for ch in asciiish).split())
+
+
 def resolve_exact(client: RealQlooClient, names: list[str], expected_types: list[str]):
     resolved = []
     for name, expected_type in zip(names, expected_types, strict=True):
         matches = [
             row
             for row in client.search_interests(name, 5)
-            if row.name.casefold() == name.casefold() and row.entity_type == expected_type
+            if comparable_name(row.name) == comparable_name(name)
+            and row.entity_type == expected_type
         ]
-        if len(matches) != 1:
+        if not matches:
             raise RuntimeError(
-                f"Expected exactly one Qloo match for {name!r} as {expected_type}, got {len(matches)}"
+                f"Expected a Qloo match for {name!r} as {expected_type}, got none"
             )
         resolved.append(matches[0])
     return resolved

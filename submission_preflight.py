@@ -4,6 +4,7 @@ import json
 import os
 import subprocess
 import sys
+import unicodedata
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
@@ -32,12 +33,19 @@ def fetch_json(url: str, payload: dict | None = None) -> dict:
     return result
 
 
+def comparable_name(value: str) -> str:
+    folded = unicodedata.normalize("NFKD", value.casefold())
+    asciiish = "".join(ch for ch in folded if not unicodedata.combining(ch))
+    return " ".join("".join(ch if ch.isalnum() else " " for ch in asciiish).split())
+
+
 def exact_search(live_url: str, name: str, kind: str) -> dict:
     data = fetch_json(f"{live_url}/api/search?q={quote(name)}")
     matches = [
         row
         for row in data.get("results", [])
-        if row.get("name", "").casefold() == name.casefold() and row.get("kind") == kind
+        if comparable_name(str(row.get("name", ""))) == comparable_name(name)
+        and row.get("kind") == kind
     ]
     if not matches:
         raise RuntimeError(f"live search could not resolve {name!r} as {kind}")
