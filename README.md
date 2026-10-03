@@ -8,8 +8,8 @@ CommonGround helps two people with different tastes find **one movie that each p
 
 The core interaction is intentionally narrow:
 
-1. each person provides 1–3 films or artists;
-2. Qloo resolves those inputs to entities;
+1. each person searches for and selects 1–3 films or artists;
+2. the live UI stores the exact Qloo entity ID/type, so ambiguous names are not silently guessed;
 3. Qloo independently discovers movie candidates for A and B;
 4. CommonGround unions those candidates and asks Qloo to evaluate the **same movie pool** for both people;
 5. candidates missing an evaluation on either side stay **unknown** instead of becoming zero;
@@ -36,7 +36,7 @@ This avoids the old failure mode where random text could receive a meaningless s
 
 The live client already implements:
 
-- entity resolution via `/search`;
+- entity search/resolution via `/search` and the app's `/api/search` selector endpoint;
 - movie discovery via `/v2/insights`;
 - `feature.explainability=true`;
 - candidate exclusions via `filter.exclude.entities`;
@@ -44,6 +44,8 @@ The live client already implements:
 - defensive parsing and fail-closed behavior when response structure is unexpected.
 
 The remaining live gate is a real hackathon API key and one schema smoke test against the competition environment.
+
+The repository also contains a prepared `render.yaml` for a free live backend once that smoke test passes.
 
 ## Run locally
 
@@ -59,6 +61,22 @@ Run tests:
 
 ```powershell
 python -m unittest discover -s tests -v
+```
+
+Once the hackathon key is available, run the full read-only live contract smoke test:
+
+```powershell
+$env:QLOO_API_KEY="..."
+python live_smoke.py
+```
+
+The script never prints the key. It verifies entity resolution, independent discovery, same-pool evaluation, the first bridge, and a second-round exclusion.
+
+After deployment, run the final automated readiness check:
+
+```powershell
+$env:LIVE_DEMO_URL="https://your-service.example"
+python submission_preflight.py
 ```
 
 Build the static public preview:
@@ -90,6 +108,7 @@ The test suite covers:
 - candidate-specific evidence;
 - live search/insight response parsing fixtures;
 - secret-safe HTTP errors.
+- explicit resolved-entity payload validation, so the agent receives stable Qloo IDs instead of reinterpreting a selected label.
 
 ## Submission status
 
@@ -101,4 +120,3 @@ Public preview and public source are ready. **Do not final-submit yet.** The rem
 4. deploy the Python backend on a genuinely free host with the key stored server-side;
 5. replace the fixture Pages URL with the live demo URL in Devpost;
 6. final human review and submission.
-

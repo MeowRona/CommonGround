@@ -5,3 +5,5 @@ __pycache__/
 
 # Never commit hackathon credentials.
 *api_key*
+live_smoke_output*.json
+sanitized_live_fixture*.json

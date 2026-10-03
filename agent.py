@@ -85,24 +85,40 @@ class CommonGroundAgent:
         round_no: int = 1,
         rejected_ids: object = None,
     ) -> dict:
-        if round_no < 1 or round_no > MAX_ROUNDS:
-            raise ValueError(f"round_no must be between 1 and {MAX_ROUNDS}")
         a_names = normalize_profile(profile_a)
         b_names = normalize_profile(profile_b)
+        a_interests = self.client.resolve_interests(a_names)
+        b_interests = self.client.resolve_interests(b_names)
+        return self.run_resolved(
+            a_interests,
+            b_interests,
+            round_no=round_no,
+            rejected_ids=rejected_ids,
+        )
+
+    def run_resolved(
+        self,
+        a_interests: list[ResolvedInterest],
+        b_interests: list[ResolvedInterest],
+        *,
+        round_no: int = 1,
+        rejected_ids: object = None,
+    ) -> dict:
+        if round_no < 1 or round_no > MAX_ROUNDS:
+            raise ValueError(f"round_no must be between 1 and {MAX_ROUNDS}")
+        if not 1 <= len(a_interests) <= 3 or not 1 <= len(b_interests) <= 3:
+            raise ValueError("Each person must provide 1 to 3 resolved interests")
         rejected = [] if rejected_ids is None else rejected_ids
         if not isinstance(rejected, list) or not all(isinstance(x, str) for x in rejected):
             raise ValueError("rejected_ids must be a list of entity IDs")
         rejected = list(dict.fromkeys(x for x in rejected if x))
 
-        trace: list[AgentStep] = []
-        a_interests = self.client.resolve_interests(a_names)
-        b_interests = self.client.resolve_interests(b_names)
-        trace.append(
+        trace: list[AgentStep] = [
             AgentStep(
                 "Resolve real taste entities",
                 f"Resolved {len(a_interests)} interest(s) for A and {len(b_interests)} for B.",
             )
-        )
+        ]
 
         take = 20 if round_no == 1 else 40
         candidates_a = self.client.discover_candidates(

@@ -64,6 +64,26 @@ class RankingTests(unittest.TestCase):
         self.assertIn("HTTP 401", str(ctx.exception))
         self.assertNotIn("super-secret-test-key", str(ctx.exception))
 
+    def test_transport_retries_transient_http_error(self):
+        transport = QlooTransport(api_key="secret")
+
+        class FakeResponse:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+            def read(self, size):
+                return b'{"ok": true}'
+
+        transient = HTTPError("https://example.invalid", 503, "Busy", {}, None)
+        with patch("qloo_client.urlopen", side_effect=[transient, FakeResponse()]) as mocked:
+            with patch("qloo_client.time.sleep"):
+                result = transport.get_json("/search", {"query": "test"})
+        self.assertEqual(result, {"ok": True})
+        self.assertEqual(mocked.call_count, 2)
+
     def test_real_client_resolves_exact_supported_entity(self):
         class FakeTransport:
             def get_json(self, path, params):
@@ -80,6 +100,24 @@ class RankingTests(unittest.TestCase):
         result = client.resolve_interests(["Blade Runner"])
         self.assertEqual(result[0].entity_id, "seed:blade")
         self.assertEqual(result[0].entity_type, "urn:entity:movie")
+
+    def test_real_search_filters_unsupported_types_and_duplicates(self):
+        class FakeTransport:
+            def get_json(self, path, params):
+                return {
+                    "results": [
+                        {"entity_id": "m1", "name": "Heat", "types": ["urn:entity:movie"]},
+                        {"entity_id": "m1", "name": "Heat", "types": ["urn:entity:movie"]},
+                        {"entity_id": "p1", "name": "Heat Cafe", "types": ["urn:entity:place"]},
+                        {"entity_id": "a1", "name": "Heat Artist", "types": ["urn:entity:artist"]},
+                    ]
+                }
+
+        rows = RealQlooClient(FakeTransport()).search_interests("heat", 5)
+        self.assertEqual([(x.entity_id, x.entity_type) for x in rows], [
+            ("m1", "urn:entity:movie"),
+            ("a1", "urn:entity:artist"),
+        ])
 
     def test_real_client_parses_same_pool_rank_and_literal_explainability(self):
         class FakeTransport:

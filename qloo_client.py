@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import time
 from dataclasses import dataclass
 from typing import Iterable
 from urllib.error import HTTPError, URLError
@@ -88,13 +89,32 @@ class QlooTransport:
         query = urlencode(params or {})
         url = f"{self.base_url}{path}" + (f"?{query}" if query else "")
         request = Request(url, headers={"X-Api-Key": self.api_key, "Accept": "application/json"})
-        try:
-            with urlopen(request, timeout=15) as response:
-                raw = response.read(8_000_001)
-        except HTTPError as exc:
-            raise RuntimeError(f"Qloo API returned HTTP {exc.code} for {path}") from exc
-        except URLError as exc:
-            raise RuntimeError(f"Qloo API is unreachable for {path}") from exc
+        raw = b""
+        last_error: Exception | None = None
+        for attempt in range(3):
+            try:
+                with urlopen(request, timeout=15) as response:
+                    raw = response.read(8_000_001)
+                last_error = None
+                break
+            except HTTPError as exc:
+                last_error = exc
+                if exc.code not in {429, 500, 502, 503, 504} or attempt == 2:
+                    raise RuntimeError(f"Qloo API returned HTTP {exc.code} for {path}") from exc
+                retry_after = exc.headers.get("Retry-After") if exc.headers else None
+                try:
+                    delay = min(2.0, max(0.0, float(retry_after))) if retry_after else 0.35 * (attempt + 1)
+                except ValueError:
+                    delay = 0.35 * (attempt + 1)
+                time.sleep(delay)
+            except URLError as exc:
+                last_error = exc
+                if attempt == 2:
+                    raise RuntimeError(f"Qloo API is unreachable for {path}") from exc
+                time.sleep(0.25 * (attempt + 1))
+
+        if last_error is not None:
+            raise RuntimeError(f"Qloo API request failed for {path}") from last_error
 
         if len(raw) > 8_000_000:
             raise RuntimeError("Qloo API response exceeded the 8 MB safety limit")
@@ -169,19 +189,25 @@ class RealQlooClient:
     def __init__(self, transport: QlooTransport | None = None):
         self.transport = transport or QlooTransport()
 
+    def search_interests(self, query: str, take: int = 5) -> list[ResolvedInterest]:
+        payload = self.transport.get_json("/search", build_search_params(query, take))
+        candidates: list[ResolvedInterest] = []
+        seen: set[str] = set()
+        for row in _search_rows(payload):
+            entity_id = _entity_id(row)
+            entity_name = _entity_name(row)
+            types = _entity_types(row)
+            entity_type = next((t for t in types if t in SUPPORTED_INPUT_TYPES), "")
+            if entity_id and entity_name and entity_type and entity_id not in seen:
+                seen.add(entity_id)
+                candidates.append(ResolvedInterest(entity_id, entity_name, entity_type))
+        return candidates
+
     def resolve_interests(self, names: Iterable[str]) -> list[ResolvedInterest]:
         resolved: list[ResolvedInterest] = []
         for raw_name in names:
             name = raw_name.strip()
-            payload = self.transport.get_json("/search", build_search_params(name, 5))
-            candidates: list[ResolvedInterest] = []
-            for row in _search_rows(payload):
-                entity_id = _entity_id(row)
-                entity_name = _entity_name(row)
-                types = _entity_types(row)
-                entity_type = next((t for t in types if t in SUPPORTED_INPUT_TYPES), "")
-                if entity_id and entity_name and entity_type:
-                    candidates.append(ResolvedInterest(entity_id, entity_name, entity_type))
+            candidates = self.search_interests(name, 5)
 
             exact = [x for x in candidates if x.name.casefold() == name.casefold()]
             if len(exact) == 1:
@@ -302,6 +328,16 @@ FIXTURE_PROFILES: dict[tuple[str, ...], list[tuple[str, str, tuple[str, ...]]]] 
 
 class FixtureQlooClient:
     mode = "fixture"
+
+    def search_interests(self, query: str, take: int = 5) -> list[ResolvedInterest]:
+        needle = query.strip().casefold()
+        if not needle:
+            return []
+        rows: list[ResolvedInterest] = []
+        for name, (entity_id, entity_type) in FIXTURE_ENTITY_IDS.items():
+            if needle in name.casefold():
+                rows.append(ResolvedInterest(entity_id, name, entity_type))
+        return rows[:take]
 
     def resolve_interests(self, names: Iterable[str]) -> list[ResolvedInterest]:
         resolved: list[ResolvedInterest] = []

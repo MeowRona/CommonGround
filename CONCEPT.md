@@ -10,7 +10,7 @@ CommonGround asks a narrower question:
 
 ## Core interaction
 
-Each person enters 1–3 films or artists they genuinely like.
+Each person searches for and selects 1–3 films or artists they genuinely like. In live mode the UI stores the chosen Qloo entity ID and type, rather than treating a free-text label as identity.
 
 Qloo resolves those interests, retrieves movie candidates for each profile and then evaluates the **same candidate union** for both people. CommonGround chooses the movie with the best worse-side rank.
 
@@ -59,4 +59,3 @@ If both people still do not accept, CommonGround stops with no confirmed bridge.
 Target output is movie only. Inputs may be movies or artists. Restaurants are intentionally removed from this version.
 
 No database, paid LLM, GPU, accounts or user profiling service is required.
-

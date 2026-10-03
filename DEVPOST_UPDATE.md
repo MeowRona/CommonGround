@@ -8,7 +8,7 @@ An adaptive Qloo-powered agent that finds one movie two different tastes can rea
 
 CommonGround treats a shared recommendation as a two-person decision problem, not one averaged profile.
 
-Each person provides 1–3 films or artists. Qloo resolves those interests and discovers movie candidates independently for both people. CommonGround unions the candidate sets, then asks Qloo to evaluate that same movie pool separately for A and B.
+Each person searches for and selects 1–3 Qloo-recognized films or artists. The app keeps the selected entity ID/type so ambiguous names are not silently guessed. CommonGround then discovers movie candidates independently for both people. CommonGround unions the candidate sets, then asks Qloo to evaluate that same movie pool separately for A and B.
 
 Candidates are ranked by the worse of the two positions first, then by the sum of both positions. Missing evaluation is unknown, not zero.
 
@@ -33,3 +33,8 @@ Old screenshots show the removed percentage-score UI. Replace them after opening
 3. optional second-round screen after a veto.
 
 Do not final-submit until the live Qloo key smoke test and live backend deployment are complete.
+
+## Live deployment path
+
+The repo includes ender.yaml for a Render Free Docker web service. After the Qloo key passes live_smoke.py, connect the repo to Render, store QLOO_API_KEY only as a secret environment variable, deploy, then run submission_preflight.py with LIVE_DEMO_URL set to the HTTPS service URL.
+

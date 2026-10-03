@@ -3,6 +3,7 @@
 ## Technological implementation
 
 Implemented:
+- explicit Qloo entity search/selection for ambiguous names;
 - Qloo `/search` request path and entity resolution;
 - independent `/v2/insights` movie discovery for two profiles;
 - candidate union rather than short-list intersection;
@@ -46,4 +47,3 @@ The distinctive part is the combination of:
 3. Free backend host.
 4. Replace fixture preview with live public demo.
 5. Final human review and Devpost submission.
-

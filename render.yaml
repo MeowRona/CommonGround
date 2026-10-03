@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: commonground
+    runtime: docker
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: HOST
+        value: 0.0.0.0
+      - key: COMMON_GROUND_MODE
+        value: live
+      - key: QLOO_API_KEY
+        sync: false

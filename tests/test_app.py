@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import unittest
 
-from app import build_bridge
+from app import build_bridge, search_interests
 
 
 class AppTests(unittest.TestCase):
@@ -47,6 +47,35 @@ class AppTests(unittest.TestCase):
     def test_non_object_payload_is_rejected(self):
         with self.assertRaises(ValueError):
             build_bridge(["not", "an", "object"])
+
+    def test_fixture_search_returns_canonical_entity(self):
+        result = search_interests("blade")
+        self.assertEqual(result["results"][0]["name"], "Blade Runner")
+        self.assertEqual(result["results"][0]["kind"], "movie")
+
+    def test_short_search_is_rejected(self):
+        with self.assertRaises(ValueError):
+            search_interests("x")
+
+    def test_bridge_accepts_explicit_resolved_entities(self):
+        result = build_bridge({
+            "profile_a_entities": [
+                {"entity_id": "seed:blade-runner", "name": "Blade Runner", "entity_type": "urn:entity:movie"},
+                {"entity_id": "seed:aphex-twin", "name": "Aphex Twin", "entity_type": "urn:entity:artist"},
+            ],
+            "profile_b_entities": [
+                {"entity_id": "seed:amelie", "name": "Amelie", "entity_type": "urn:entity:movie"},
+                {"entity_id": "seed:daft-punk", "name": "Daft Punk", "entity_type": "urn:entity:artist"},
+            ],
+        })
+        self.assertEqual(result["bridge"]["name"], "Arrival")
+
+    def test_explicit_entity_type_is_validated(self):
+        with self.assertRaises(ValueError):
+            build_bridge({
+                "profile_a_entities": [{"entity_id": "x", "name": "X", "entity_type": "urn:entity:place"}],
+                "profile_b_entities": [{"entity_id": "y", "name": "Y", "entity_type": "urn:entity:movie"}],
+            })
 
 
 if __name__ == "__main__":

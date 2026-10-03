@@ -1,6 +1,6 @@
 # Deployment contract
 
-The contest requires a fully published, freely accessible working demo. Publication is intentionally deferred until live Qloo validation and entrant approval.
+The contest requires a fully published, freely accessible working demo. The repository now includes `render.yaml` for a Render Free web service. The live deployment remains deferred until the Qloo key passes `live_smoke.py`.
 
 ## Runtime
 
@@ -12,6 +12,26 @@ The contest requires a fully published, freely accessible working demo. Publicat
 - production data mode: `COMMON_GROUND_MODE=live`
 - secret: `QLOO_API_KEY`, stored only in the hosting provider's secret/environment settings
 - health endpoint: `GET /health`
+
+## Prepared free backend path: Render
+
+`render.yaml` declares one Docker web service using Render's Free plan. The service:
+
+- binds to `0.0.0.0`;
+- uses the platform-provided `PORT`;
+- runs `COMMON_GROUND_MODE=live`;
+- checks `/health`;
+- requires `QLOO_API_KEY` as a secret value (`sync: false`), so it is never committed.
+
+After the key is verified locally:
+
+1. create/sign in to a Render account;
+2. create a Blueprint from the public GitHub repository;
+3. choose the declared Free service;
+4. enter `QLOO_API_KEY` only in Render's secret/environment UI;
+5. deploy;
+6. set `LIVE_DEMO_URL` locally to the resulting HTTPS URL;
+7. run `python submission_preflight.py`.
 
 ## Free-host requirement
 
@@ -34,3 +54,4 @@ If no genuinely free suitable host is available, stop instead of buying a servic
 5. Repository contains no key, `.env`, personal data, temporary docs snapshots, or generated cache files.
 6. Public README contains the final demo URL and exact run instructions.
 
+`submission_preflight.py` automates the test suite, clean-Git check, key presence, public repository reachability, and live `/health` verification. It deliberately does not submit anything to Devpost.
