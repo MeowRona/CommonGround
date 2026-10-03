@@ -89,6 +89,14 @@ class StaticPreviewTests(unittest.TestCase):
         self.assertIn('aria-live="polite"', html)
         self.assertIn("aria-busy", html)
 
+    def test_autocomplete_ignores_stale_out_of_order_responses(self):
+        html = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+        self.assertIn("let searchSeq={a:0,b:0}", html)
+        self.assertIn("const seq=++searchSeq[person]", html)
+        self.assertIn("if(seq!==searchSeq[person])return", html)
+        self.assertIn("function invalidateSearch(person)", html)
+        self.assertIn("invalidateSearch('a');invalidateSearch('b')", html)
+
     def test_fixture_mode_uses_scenarios_instead_of_fake_free_text_search(self):
         html = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
         self.assertIn("async function showFixtureSetup()", html)
