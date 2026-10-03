@@ -21,7 +21,7 @@ Judging currently runs through **November 16, 2026 at 11:45 PM EST**, so the pub
 
 | Requirement | State | Evidence / action |
 |---|---|---|
-| Functional demo URL | PARTIAL | `https://meowrona.github.io/CommonGround/` is public now in fixture mode. Final config must point it at the verified Render/Qloo backend. |
+| Functional demo URL | PARTIAL | `https://meowrona.github.io/CommonGround/` is public now in clearly labelled Wikimedia open-data test mode. Final config must point the same Pages frontend at the verified Render/Qloo backend. |
 | Fully published external hosting | BLOCKED externally | Render Free deployment path is prepared in `render.yaml`; deploy after the Qloo key passes smoke testing. |
 | Public code repository | READY | `https://github.com/MeowRona/CommonGround` |
 | All source/assets/instructions | READY | Source, Dockerfile, Render Blueprint, architecture, run/test/deploy instructions are public. |
@@ -46,7 +46,7 @@ Judging currently runs through **November 16, 2026 at 11:45 PM EST**, so the pub
 
 Do **not** submit while any of these is true:
 
-- Pages is still in fixture mode;
+- Pages is still in open-data/fixture mode instead of verified live Qloo mode;
 - `/health` does not report `mode=live` and key present;
 - live search cannot resolve the four smoke-test entities;
 - the same-pool bridge request fails;

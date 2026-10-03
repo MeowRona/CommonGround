@@ -16,7 +16,7 @@ Candidates are ranked by the worse of the two positions first, then by the sum o
 
 The app proposes one movie and shows two different evidence routes. Both people respond with Want to try, Already know it, or Not for me. A veto or already-known result is excluded and triggers one wider second round. After two rounds, CommonGround stops rather than forcing a compromise.
 
-The public GitHub Pages build is currently a clearly labelled fixture preview generated from the Python decision policy while the hackathon API key is pending. It does not claim to show live Qloo output.
+While the hackathon API key is pending, the public GitHub Pages build is a clearly labelled **OPEN-DATA TEST MODE — NOT QLOO**. It uses Wikipedia/Wikidata for real entity search and temporary related-page movie candidates so the interaction can be tested without fabricating Qloo responses. `?static=1` still exposes deterministic Python fixtures. Neither temporary mode is described as live Qloo output.
 
 ### Why Qloo is essential
 
@@ -52,8 +52,8 @@ For the final submission, keep the GitHub Pages URL as the demo URL after `docs/
 
 ## Media to replace
 
-Old screenshots show the removed percentage-score UI. Replace them after opening the current public preview:
-1. top screen with “One movie. Two different reasons.” and scenario selector;
+Old screenshots show the removed percentage-score UI. Replace them after the verified live Qloo deployment:
+1. top screen with “One movie. Two different reasons.” and the Qloo entity selectors;
 2. bridge result showing one movie, A/B rank routes, evidence chips and bilateral feedback buttons;
 3. optional second-round screen after a veto.
 

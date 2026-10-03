@@ -111,6 +111,25 @@ class StaticPreviewTests(unittest.TestCase):
         self.assertIn("Free-text Qloo search stays hidden until a real hackathon API key is connected.", html)
         self.assertIn("if(h.mode!=='live'){STATIC=true;await showFixtureSetup();return}", html)
 
+    def test_public_open_data_mode_is_explicit_and_not_presented_as_qloo(self):
+        html = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+        self.assertIn("open-data test — NOT Qloo", html)
+        self.assertIn("Temporary mode: Wikidata + Wikipedia", html)
+        self.assertIn("OPEN-DATA TEST MODE", html)
+        self.assertIn("Wikipedia text similarity supplies temporary ranks", html)
+
+    def test_open_data_mode_uses_real_wikimedia_endpoints(self):
+        html = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+        self.assertIn("generator:'search'", html)
+        self.assertIn("morelike:", html)
+        self.assertIn("query.wikidata.org/sparql", html)
+        self.assertIn("wdt:P31/wdt:P279* wd:Q11424", html)
+
+    def test_open_data_search_prioritizes_exact_normalized_titles(self):
+        html = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+        self.assertIn("function comparableOpenName", html)
+        self.assertIn("comparableOpenName(a.name)!==target", html)
+
 
 if __name__ == "__main__":
     unittest.main()
