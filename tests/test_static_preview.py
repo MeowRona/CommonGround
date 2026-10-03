@@ -45,6 +45,11 @@ class StaticPreviewTests(unittest.TestCase):
         self.assertIn("api_base", config)
         self.assertIsInstance(config["api_base"], str)
 
+    def test_live_ui_renders_before_background_health_check(self):
+        html = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+        self.assertIn("showInteractiveSetup();refreshBackendStatus();", html)
+        self.assertIn("function refreshBackendStatus()", html)
+
 
 if __name__ == "__main__":
     unittest.main()
