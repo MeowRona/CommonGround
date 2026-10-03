@@ -69,6 +69,12 @@ class StaticPreviewTests(unittest.TestCase):
         self.assertIn("$('evidenceA').innerHTML=''", html)
         self.assertIn("No confirmed bridge. Try a different pair of taste signals.", html)
 
+    def test_fixture_mode_uses_scenarios_instead_of_fake_free_text_search(self):
+        html = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+        self.assertIn("async function showFixtureSetup()", html)
+        self.assertIn("Free-text Qloo search stays hidden until a real hackathon API key is connected.", html)
+        self.assertIn("if(h.mode!=='live'){STATIC=true;await showFixtureSetup();return}", html)
+
 
 if __name__ == "__main__":
     unittest.main()

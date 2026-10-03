@@ -54,6 +54,12 @@ class HttpServerTests(unittest.TestCase):
         self.assertEqual(response.status, 200)
         self.assertEqual(body["results"][0]["name"], "Blade Runner")
 
+    def test_demo_scenarios_are_served_for_local_fixture_ui(self):
+        response, body = self.get_json("/demo_scenarios.json")
+        self.assertEqual(response.status, 200)
+        self.assertGreaterEqual(len(body["scenarios"]), 2)
+        self.assertIn("rounds", body["scenarios"][0])
+
     def test_options_allows_pages_and_rejects_foreign_origin(self):
         allowed = Request(
             f"{self.base}/api/bridge",

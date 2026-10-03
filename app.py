@@ -16,6 +16,7 @@ from qloo_client import FixtureQlooClient, RealQlooClient, ResolvedInterest, SUP
 
 ROOT = Path(__file__).resolve().parent
 INDEX = ROOT / "static" / "index.html"
+DEMO_SCENARIOS = ROOT / "docs" / "demo_scenarios.json"
 HOST = os.environ.get("HOST", "127.0.0.1")
 PORT = int(os.environ.get("PORT", os.environ.get("COMMON_GROUND_PORT", "0")))
 FRONTEND_ORIGIN = os.environ.get("FRONTEND_ORIGIN", "").strip().rstrip("/")
@@ -227,6 +228,16 @@ class Handler(BaseHTTPRequestHandler):
             raw = INDEX.read_bytes()
             self.send_response(HTTPStatus.OK)
             self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(raw)))
+            self.send_header("Cache-Control", "no-store")
+            self._security_headers()
+            self.end_headers()
+            self.wfile.write(raw)
+            return
+        if request_path == "/demo_scenarios.json":
+            raw = DEMO_SCENARIOS.read_bytes()
+            self.send_response(HTTPStatus.OK)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
             self.send_header("Content-Length", str(len(raw)))
             self.send_header("Cache-Control", "no-store")
             self._security_headers()
