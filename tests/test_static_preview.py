@@ -69,6 +69,19 @@ class StaticPreviewTests(unittest.TestCase):
         self.assertIn("$('evidenceA').innerHTML=''", html)
         self.assertIn("No confirmed bridge. Try a different pair of taste signals.", html)
 
+    def test_live_round_two_uses_frozen_profile_snapshot(self):
+        html = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+        self.assertIn("activeProfiles={a:selected.a.map(x=>({...x})),b:selected.b.map(x=>({...x}))}", html)
+        self.assertIn("profile_a_entities:activeProfiles.a", html)
+        self.assertIn("profile_b_entities:activeProfiles.b", html)
+
+    def test_change_tastes_resets_session_and_unlocks_setup(self):
+        html = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
+        self.assertIn('id="reset"', html)
+        self.assertIn("function resetSession()", html)
+        self.assertIn("activeProfiles=null", html)
+        self.assertIn("setInteractiveEnabled(true)", html)
+
     def test_fixture_mode_uses_scenarios_instead_of_fake_free_text_search(self):
         html = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
         self.assertIn("async function showFixtureSetup()", html)
